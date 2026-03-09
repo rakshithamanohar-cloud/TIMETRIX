@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BCA Timetable — Login</title>
+  <link rel="stylesheet" href="css/output.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --cr:    #a51c30;
+      --cr2:   #8b1526;
+      --crL:   #e05050;
+      --crBg:  rgba(165,28,48,0.15);
+      --crBd:  rgba(165,28,48,0.40);
+      --cream: #eeeaff;
+      --muted: rgba(255,255,255,0.45);
+      --g1:    rgba(255,255,255,0.07);
+      --g2:    rgba(255,255,255,0.12);
+      --gb:    rgba(255,255,255,0.12);
+      --gb2:   rgba(255,255,255,0.20);
+      --font:  'Outfit', sans-serif;
+      --serif: 'Cormorant Garamond', serif;
+      --mono:  'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: var(--font);
+      background: var(--cr);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 6% 0 8%;
+      position: relative;
+    }
+
+    /* ── BACKGROUND SHAPES (like image 1) ── */
+    .shape {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .shape-1 {
+      width: 500px; height: 500px;
+      background: rgba(255,255,255,0.04);
+      top: -150px; left: -100px;
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    }
+    .shape-2 {
+      width: 400px; height: 400px;
+      background: rgba(0,0,0,0.10);
+      bottom: -100px; left: 20%;
+      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+    .shape-3 {
+      width: 300px; height: 300px;
+      background: rgba(255,255,255,0.03);
+      top: 20%; right: 40%;
+      border-radius: 40% 60% 60% 40% / 40% 40% 60% 60%;
+    }
+    .shape-4 {
+      width: 250px; height: 250px;
+      background: rgba(0,0,0,0.08);
+      top: -50px; right: 35%;
+      border: 2px solid rgba(255,255,255,0.06);
+      border-radius: 30% 70% 40% 60%;
+    }
+    /* Grid texture */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    /* ── LEFT SIDE ── */
+    .left {
+      position: relative; z-index: 10;
+      flex: 1;
+      max-width: 480px;
+      animation: fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .logo-mark {
+      width: 44px; height: 44px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif); font-style: italic;
+      font-size: 22px; font-weight: 700; color: #fff;
+      margin-bottom: 40px;
+    }
+    .welcome-text {
+      font-family: var(--font);
+      font-size: 72px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .divider-short {
+      width: 48px; height: 2px;
+      background: rgba(255,255,255,0.4);
+      margin-bottom: 20px;
+    }
+    .left-sub {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.75;
+      max-width: 320px;
+      margin-bottom: 32px;
+    }
+    .learn-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 24px;
+      background: var(--crL);
+      color: #fff;
+      border: none; border-radius: 24px;
+      font-size: 13px; font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .learn-btn:hover {
+      background: #c04040;
+      transform: translateY(-1px);
+    }
+
+    /* ── RIGHT SIDE — Glass Card ── */
+    .card {
+      position: relative; z-index: 10;
+      width: 100%;
+      max-width: 400px;
+      background: rgba(30, 10, 15, 0.55);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 40px 36px;
+      animation: fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.15s both;
+    }
+    /* Shine on card */
+    .card::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .card-title {
+      font-family: var(--font);
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    /* ── ROLE BUTTONS ── */
+    .roles {
+      display: flex; gap: 8px;
+      margin-bottom: 24px;
+    }
+    .role-btn {
+      flex: 1; padding: 8px 4px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      color: rgba(255,255,255,0.5);
+      font-size: 10px; font-weight: 600;
+      font-family: var(--mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+      text-align: center;
+    }
+    .role-btn.active {
+      background: rgba(165,28,48,0.35);
+      border-color: rgba(224,80,80,0.5);
+      color: #ffb3b3;
+    }
+    .role-btn:hover:not(.active) {
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* ── LABELS ── */
+    .field-label {
+      display: block;
+      font-size: 12px; font-weight: 600;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 7px;
+      font-family: var(--font);
+    }
+
+    /* ── INPUTS ── */
+    .fi {
+      width: 100%;
+      padding: 12px 14px 12px 40px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      font-family: var(--font);
+      outline: none;
+      transition: all 0.2s;
+      margin-bottom: 18px;
+    }
+    .fi:focus {
+      border-color: rgba(224,80,80,0.6);
+      background: rgba(165,28,48,0.15);
+      box-shadow: 0 0 0 3px rgba(165,28,48,0.15);
+    }
+    .fi::placeholder { color: rgba(255,255,255,0.3); }
+
+    /* ── SUBMIT BUTTON ── */
+    .btn-submit {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, var(--crL), #c0392b);
+      color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 700;
+      font-family: var(--font);
+      letter-spacing: 0.06em;
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(165,28,48,0.5);
+      margin-top: 4px;
+    }
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(165,28,48,0.6);
+    }
+    .btn-submit.loading {
+      opacity: 0.7; pointer-events: none;
+    }
+    .btn-submit.loading::after {
+      content: '';
+      display: inline-block; width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-left: 10px; vertical-align: middle;
+    }
+
+    /* ── ERROR ── */
+    .error {
+      display: none;
+      background: rgba(165,28,48,0.25);
+      border: 1px solid rgba(224,80,80,0.4);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px; color: #ffb3b3;
+      font-family: var(--mono);
+      margin-bottom: 14px;
+      animation: shake 0.4s ease;
+    }
+    .error.show { display: block; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      display: flex; align-items: center; gap: 10px;
+      margin: 20px 0;
+    }
+    .div-line { flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+    .div-txt {
+      font-size: 10px; font-family: var(--mono);
+      color: rgba(255,255,255,0.3); letter-spacing: 0.1em;
+    }
+
+    /* ── DEMO CREDS ── */
+    .demo-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .demo-title {
+      font-size: 9px; font-family: var(--mono);
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(255,255,255,0.3); margin-bottom: 10px;
+    }
+    .demo-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 7px;
+    }
+    .demo-row:last-child { margin-bottom: 0; }
+    .demo-key {
+      font-size: 11px; color: rgba(255,255,255,0.4);
+      font-family: var(--mono);
+    }
+    .demo-val {
+      font-size: 10px; color: #ffb3b3;
+      font-family: var(--mono);
+      background: rgba(165,28,48,0.25);
+      border: 1px solid rgba(224,80,80,0.3);
+      padding: 2px 8px; border-radius: 4px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .demo-val:hover { background: rgba(165,28,48,0.4); }
+
+    /* ── NO ACCOUNT NOTE ── */
+    .no-account {
+      text-align: center; margin-top: 16px;
+      font-size: 11px; color: rgba(255,255,255,0.3);
+      font-family: var(--mono); line-height: 1.7;
+    }
+    .no-account span { color: rgba(224,80,80,0.8); }
+
+    /* ── SUCCESS OVERLAY ── */
+    .success-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: #8b1526;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px;
+      opacity: 0; pointer-events: none; transition: opacity 0.4s;
+    }
+    .success-overlay.show { opacity: 1; pointer-events: all; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-6px); }
+      75%      { transform: translateX(6px); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body>
+
+  <!-- Background shapes like image 1 -->
+  <div class="shape shape-1"></div>
+  <div class="shape shape-2"></div>
+  <div class="shape shape-3"></div>
+  <div class="shape shape-4"></div>
+
+  <!-- ════ LEFT — Welcome text ════ -->
+  <div class="left">
+
+    <!-- Logo -->
+    <div class="logo-mark">TX</div>
+
+    <!-- Big welcome -->
+    <div class="welcome-text">Welcome To Timetrix!</div>
+
+    <!-- Short line -->
+    <div class="divider-short"></div>
+
+    <!-- Description -->
+    <p class="left-sub">
+      An intelligent system designed to simplify timetable creation and deliver conflict-free schedules 
+      — in minutes, not hours.
+    </p>
+
+    <!-- Learn more button -->
+    <button class="learn-btn" onclick="alert('BCA Timetable System v1.0')">
+      Learn More
+    </button>
+
+  </div>
+
+  <!-- ════ RIGHT — Glass Sign In Card ════ -->
+  <div class="card">
+
+    <div class="card-title">Sign in</div>
+
+    <!-- Role selector -->
+    <div class="roles">
+      <button class="role-btn active" id="role-hod"     onclick="setRole('hod')">👑 HOD</button>
+      <button class="role-btn"        id="role-faculty" onclick="setRole('faculty')">👩‍🏫 Faculty</button>
+      <button class="role-btn"        id="role-admin"   onclick="setRole('admin')">⚙️ Admin</button>
+      <button class="role-btn"        id="role-student" onclick="setRole('student')">🎓 Student</button>
+    </div>
+
+    <!-- Error -->
+    <div class="error" id="error-msg">⚠ Invalid credentials. Please try again.</div>
+
+    <!-- User Name -->
+    <label class="field-label">User Name</label>
+    <div style="position:relative;">
+      <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:0.4;font-size:14px;">✉</span>
+      <input class="fi" type="email" id="email" placeholder="professor@college.edu">
+    </div>
+
+    <!-- Password -->
+    <label class="field-label">Password</label>
+    <div style="position:relative;">
+      <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:0.4;font-size:14px;">🔑</span>
+      <input class="fi" type="password" id="password" placeholder="••••••••••">
+    </div>
+
+    <!-- Submit -->
+    <button class="btn-submit" id="login-btn" onclick="doLogin()">Submit</button>
+
+    <!-- No account note -->
+    <div class="no-account">
+      Don't have an account?<br>
+      <span>Contact your HOD or Admin</span> to get credentials.<br>
+      📧 hod@bca.edu · admin@bca.edu
+    </div>
+
+  </div>
+
+  <!-- Success overlay -->
+  <div class="success-overlay" id="success-overlay">
+    <div style="font-size:52px;">✓</div>
+    <div style="font-family:var(--serif);font-size:30px;font-weight:700;color:#fff;font-style:italic;">Welcome!</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.6);font-family:var(--mono);letter-spacing:0.15em;text-transform:uppercase;">Redirecting...</div>
+  </div>
+
+<script>
+  const CREDS = {
+    'hod@bca.edu':     { pass: 'hod123',     role: 'hod' },
+    'faculty@bca.edu': { pass: 'faculty123', role: 'faculty' },
+    'admin@bca.edu':   { pass: 'admin123',   role: 'admin' },
+    'student@bca.edu': { pass: 'student123', role: 'student' },
+  };
+
+  let selectedRole = 'hod';
+
+  function setRole(r) {
+    selectedRole = r;
+    ['hod','faculty','admin','student'].forEach(id => {
+      document.getElementById('role-' + id)
+        .classList.toggle('active', id === r);
+    });
+  }
+
+  function fill(email, pass, role) {
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = pass;
+    setRole(role);
+    document.getElementById('error-msg').classList.remove('show');
+  }
+
+  function doLogin() {
+    const email = document.getElementById('email').value.trim();
+    const pass  = document.getElementById('password').value;
+    const btn   = document.getElementById('login-btn');
+    const err   = document.getElementById('error-msg');
+
+    err.classList.remove('show');
+
+    if (!email || !pass) {
+      err.textContent = '⚠ Please enter both email and password.';
+      err.classList.add('show');
+      return;
+    }
+
+    btn.classList.add('loading');
+    btn.textContent = 'Signing In';
+
+    setTimeout(() => {
+      const user = CREDS[email];
+      if (!user || user.pass !== pass) {
+        btn.classList.remove('loading');
+        btn.textContent = 'Submit';
+        err.textContent = '⚠ Invalid credentials. Please try again.';
+        err.classList.add('show');
+        return;
+      }
+
+      // Save session
+      sessionStorage.setItem('bca_user', JSON.stringify({ email, role: user.role }));
+
+      // Show success
+      document.getElementById('success-overlay').classList.add('show');
+
+      // Redirect
+      setTimeout(() => {
+        window.location.href = user.role === 'student'
+          ? 'timetable-class.html'
+          : 'dashboard.html';
+      }, 1800);
+
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+</script>
+
+</body>
+</html>
