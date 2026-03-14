@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BCA Timetable — Login</title>
   <link rel="stylesheet" href="css/output.css">
+  <script src="js/api.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 
   <style>
@@ -424,13 +425,6 @@
   </div>
 
 <script>
-  const CREDS = {
-    'hod@bca.edu':     { pass: 'hod123',     role: 'hod' },
-    'faculty@bca.edu': { pass: 'faculty123', role: 'faculty' },
-    'admin@bca.edu':   { pass: 'admin123',   role: 'admin' },
-    'student@bca.edu': { pass: 'student123', role: 'student' },
-  };
-
   let selectedRole = 'hod';
 
   function setRole(r) {
@@ -448,7 +442,7 @@
     document.getElementById('error-msg').classList.remove('show');
   }
 
-  function doLogin() {
+ async function doLogin() {
     const email = document.getElementById('email').value.trim();
     const pass  = document.getElementById('password').value;
     const btn   = document.getElementById('login-btn');
@@ -465,32 +459,52 @@
     btn.classList.add('loading');
     btn.textContent = 'Signing In';
 
-    setTimeout(() => {
-      const user = CREDS[email];
-      if (!user || user.pass !== pass) {
+    try {
+      const data = await Auth.login(email, pass);
+
+      if (data.token) {
+        // Check role matches selected role
+        if (data.user.role !== selectedRole) {
+          btn.classList.remove('loading');
+          btn.textContent = 'Submit';
+          err.textContent = `⚠ You are a ${data.user.role}, not a ${selectedRole}!`;
+          err.classList.add('show');
+          return;
+        }
+
+        // Save token + user
+        localStorage.setItem('timetrix_token', data.token);
+        sessionStorage.setItem('bca_user', JSON.stringify({
+          id:    data.user.id,
+          name:  data.user.name,
+          email: data.user.email,
+          role:  data.user.role
+        }));
+
+        // Show success
+        document.getElementById('success-overlay').classList.add('show');
+
+        // Redirect
+        setTimeout(() => {
+          window.location.href = data.user.role === 'student'
+            ? 'timetable-class.html'
+            : 'dashboard.html';
+        }, 1800);
+
+      } else {
         btn.classList.remove('loading');
         btn.textContent = 'Submit';
-        err.textContent = '⚠ Invalid credentials. Please try again.';
+        err.textContent = '⚠ ' + (data.message || 'Invalid credentials!');
         err.classList.add('show');
-        return;
       }
 
-      // Save session
-      sessionStorage.setItem('bca_user', JSON.stringify({ email, role: user.role }));
-
-      // Show success
-      document.getElementById('success-overlay').classList.add('show');
-
-      // Redirect
-      setTimeout(() => {
-        window.location.href = user.role === 'student'
-          ? 'timetable-class.html'
-          : 'dashboard.html';
-      }, 1800);
-
-    }, 900);
+    } catch (e) {
+      btn.classList.remove('loading');
+      btn.textContent = 'Submit';
+      err.textContent = '⚠ Server error! Make sure backend is running.';
+      err.classList.add('show');
+    }
   }
-
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });

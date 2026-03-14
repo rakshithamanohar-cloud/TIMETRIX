@@ -3,614 +3,392 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BCA Timetable — Dashboard</title>
+  <title>Timetrix — Dashboard</title>
   <link rel="stylesheet" href="css/output.css">
+  <script src="js/api.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-
   <style>
     :root {
-      --bg:    #03021a;
       --cr:    #a51c30;
-      --cr2:   #c0392b;
-      --crL:   #e05050;
-      --crBg:  rgba(165,28,48,0.12);
-      --crBd:  rgba(165,28,48,0.35);
-      --cream: #eeeaff;
-      --cream2:#9990cc;
-      --muted: #4e4875;
-      --g1:    rgba(180,170,255,0.04);
-      --g2:    rgba(180,170,255,0.07);
-      --gb:    rgba(180,170,255,0.10);
-      --gb2:   rgba(180,170,255,0.18);
-      --gold:  #c8a46a;
-      --ok:    #5a9e6f;
+      --cr2:   #8b1526;
+      --card:  rgba(20,5,10,0.60);
+      --cardb: rgba(255,255,255,0.10);
+      --g1:    rgba(255,255,255,0.06);
+      --g2:    rgba(255,255,255,0.10);
+      --muted: rgba(255,255,255,0.40);
+      --cream: #ffffff;
+      --ok:    rgba(100,220,140,0.9);
+      --warn:  rgba(255,200,80,0.9);
       --font:  'Outfit', sans-serif;
       --serif: 'Cormorant Garamond', serif;
       --mono:  'JetBrains Mono', monospace;
     }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
     body {
-      background: var(--bg);
+      background: var(--cr);
       color: var(--cream);
       font-family: var(--font);
       min-height: 100vh;
       display: flex;
+      position: relative;
+      overflow-x: hidden;
     }
-
-    /* Grain */
+    .shape { position:fixed; border-radius:50%; pointer-events:none; z-index:0; }
+    .s1 { width:500px;height:500px;background:rgba(0,0,0,0.15);top:-150px;left:-100px; }
+    .s2 { width:400px;height:400px;background:rgba(0,0,0,0.10);bottom:-100px;right:10%;border-radius:40% 60% 60% 40%; }
+    .s3 { width:300px;height:300px;background:rgba(255,255,255,0.04);top:30%;left:30%; }
     body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-      opacity: 0.5;
-    }
-
-    /* Ambient glow */
-    .amb {
-      position: fixed; border-radius: 50%;
-      filter: blur(150px); pointer-events: none; z-index: 0;
+      content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);
+      background-size:48px 48px;
     }
 
     /* ── SIDEBAR ── */
-    .sidebar {
-      width: 240px;
-      min-height: 100vh;
-      background: rgba(180,170,255,0.03);
-      border-right: 1px solid var(--gb);
-      display: flex;
-      flex-direction: column;
-      padding: 28px 0;
-      position: fixed;
-      top: 0; left: 0;
-      z-index: 50;
-      backdrop-filter: blur(20px);
-    }
-
-    .sidebar-logo {
-      display: flex; align-items: center; gap: 12px;
-      padding: 0 24px 28px;
-      border-bottom: 1px solid var(--gb);
-      margin-bottom: 20px;
-    }
-    .logo-crest {
-      width: 36px; height: 36px;
-      background: var(--cr);
-      border-radius: 2px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--serif); font-style: italic;
-      font-size: 20px; font-weight: 700; color: #eeeaff;
-      box-shadow: 0 0 20px rgba(165,28,48,0.45);
-      flex-shrink: 0;
-    }
-    .logo-text {
-      font-family: var(--serif); font-size: 17px;
-      font-weight: 600; color: var(--cream);
-    }
-    .logo-text em { color: var(--crL); font-style: italic; }
-    .logo-sub {
-      font-size: 9px; font-family: var(--mono);
-      letter-spacing: 0.2em; color: var(--muted);
-      text-transform: uppercase; margin-top: 1px;
-    }
-
-    /* Nav items */
-    .nav-section {
-      padding: 0 12px;
-      margin-bottom: 8px;
-    }
-    .nav-label {
-      font-size: 9px; font-family: var(--mono);
-      letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--muted); padding: 0 12px;
-      margin-bottom: 6px;
-    }
-    .nav-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px;
-      border-radius: 2px;
-      color: var(--muted);
-      font-size: 13px; font-weight: 500;
-      cursor: pointer; transition: all 0.2s;
-      text-decoration: none;
-      margin-bottom: 2px;
-    }
-    .nav-item:hover {
-      background: var(--g2);
-      color: var(--cream2);
-    }
-    .nav-item.active {
-      background: var(--crBg);
-      border: 1px solid var(--crBd);
-      color: var(--crL);
-    }
-    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
-
-    /* Sidebar bottom */
-    .sidebar-bottom {
-      margin-top: auto;
-      padding: 20px 24px 0;
-      border-top: 1px solid var(--gb);
-    }
-    .user-card {
-      background: var(--g1);
-      border: 1px solid var(--gb);
-      border-radius: 2px;
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-    .user-role {
-      font-size: 9px; font-family: var(--mono);
-      letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--crL); margin-bottom: 4px;
-    }
-    .user-email {
-      font-size: 11px; color: var(--cream2);
-      font-family: var(--mono);
-    }
-    .logout-btn {
-      width: 100%; padding: 9px;
-      background: transparent;
-      border: 1px solid var(--gb2);
-      border-radius: 2px;
-      color: var(--muted);
-      font-size: 11px; font-family: var(--mono);
-      letter-spacing: 0.1em; text-transform: uppercase;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .logout-btn:hover {
-      border-color: var(--crBd);
-      color: var(--crL);
-      background: var(--crBg);
-    }
-
-    /* ── MAIN CONTENT ── */
-    .main {
-      margin-left: 240px;
-      flex: 1;
-      padding: 36px 40px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Page header */
-    .page-header {
-      display: flex; align-items: center;
-      justify-content: space-between;
-      margin-bottom: 32px;
-    }
-    .page-eyebrow {
-      font-size: 9px; font-family: var(--mono);
-      letter-spacing: 0.25em; text-transform: uppercase;
-      color: var(--crL); margin-bottom: 6px;
-    }
-    .page-title {
-      font-family: var(--serif);
-      font-size: 36px; font-weight: 300;
-      color: var(--cream); line-height: 1.1;
-      letter-spacing: -0.01em;
-    }
-    .page-title strong {
-      font-weight: 700; font-style: italic;
-    }
+    .sidebar { width:240px;min-height:100vh;background:rgba(20,5,10,0.55);border-right:1px solid rgba(255,255,255,0.10);backdrop-filter:blur(20px);display:flex;flex-direction:column;padding:28px 0;position:fixed;top:0;left:0;z-index:50; }
+    .sidebar-logo { display:flex;align-items:center;gap:12px;padding:0 24px 24px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:20px; }
+    .logo-crest { width:38px;height:38px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:16px;font-weight:700;color:#fff;flex-shrink:0; }
+    .logo-name { font-family:var(--serif);font-size:20px;font-weight:700;color:#fff;line-height:1; }
+    .logo-sub  { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-top:2px; }
+    .nav-section { padding:0 12px;margin-bottom:8px; }
+    .nav-label { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0 12px;margin-bottom:6px; }
+    .nav-item { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;color:rgba(255,255,255,0.45);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;text-decoration:none;margin-bottom:2px; }
+    .nav-item:hover { background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8); }
+    .nav-item.active { background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff; }
+    .nav-icon { font-size:16px;width:20px;text-align:center; }
+    .sidebar-bottom { margin-top:auto;padding:20px 24px 0;border-top:1px solid rgba(255,255,255,0.08); }
+    .user-card { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:12px;margin-bottom:10px; }
+    .user-role  { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,200,200,0.8);margin-bottom:3px; }
+    .user-email { font-size:11px;color:rgba(255,255,255,0.5);font-family:var(--mono); }
+    .logout-btn { width:100%;padding:9px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:rgba(255,255,255,0.4);font-size:11px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s; }
+    .logout-btn:hover { border-color:rgba(255,255,255,0.35);color:#fff;background:rgba(255,255,255,0.08); }
+     
+    /* ── MAIN ── */
+    .main { margin-left:240px;flex:1;padding:36px 40px;position:relative;z-index:1; }
+    .page-eyebrow { font-size:9px;font-family:var(--mono);letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,200,200,0.8);margin-bottom:6px; }
+    .page-title { font-family:var(--serif);font-size:42px;font-weight:300;color:#fff;line-height:1.08;margin-bottom:4px; }
+    .page-title strong { font-weight:700;font-style:italic; }
+    .greeting-sub { font-size:13px;color:var(--muted);margin-bottom:28px;font-family:var(--mono); }
 
     /* ── STAT CARDS ── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 28px;
-    }
+    .stats-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px; }
     .stat-card {
-      background: var(--g2);
-      border: 1px solid var(--gb2);
-      border-radius: 2px;
-      padding: 22px;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.2s, border-color 0.2s;
+      background:var(--card);border:1px solid var(--cardb);
+      border-radius:12px;padding:22px;backdrop-filter:blur(16px);
+      position:relative;overflow:hidden;transition:transform 0.2s;
     }
-    .stat-card:hover {
-      transform: translateY(-2px);
-      border-color: var(--crBd);
-    }
-    .stat-card::after {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0;
-      height: 2px;
-    }
-    .stat-card.cr::after { background: linear-gradient(90deg, var(--cr), var(--crL)); }
-    .stat-card.go::after { background: linear-gradient(90deg, #8a6020, var(--gold)); }
-    .stat-card.ok::after { background: linear-gradient(90deg, #2a6040, var(--ok)); }
-    .stat-card.lv::after { background: linear-gradient(90deg, #3322aa, #7766ff); }
+    .stat-card:hover { transform:translateY(-2px); }
+    .stat-card::before { content:'';position:absolute;inset:0;border-radius:12px;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,0.05) 0%,transparent 60%); }
+    .stat-icon { font-size:28px;margin-bottom:12px; }
+    .stat-num  { font-family:var(--serif);font-size:42px;font-weight:700;color:#fff;line-height:1; }
+    .stat-lbl  { font-size:10px;font-family:var(--mono);letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-top:6px; }
+    .stat-change { font-size:10px;font-family:var(--mono);color:var(--ok);margin-top:4px; }
 
-    .stat-ey {
-      font-size: 9px; font-family: var(--mono);
-      letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 10px;
-    }
-    .stat-num {
-      font-family: var(--serif);
-      font-size: 48px; font-weight: 700;
-      line-height: 1; margin-bottom: 4px;
-      color: var(--cream);
-    }
-    .stat-sub {
-      font-size: 11px; color: var(--muted);
-    }
-    .prog {
-      background: var(--g1); border: 1px solid var(--gb);
-      border-radius: 1px; height: 4px;
-      overflow: hidden; margin-top: 12px;
-    }
-    .prog-fill {
-      height: 100%; border-radius: 1px;
-      transition: width 1s ease;
-    }
-    .prog-cr { background: linear-gradient(90deg, var(--cr), var(--crL)); }
-    .prog-go { background: linear-gradient(90deg, #8a6020, var(--gold)); }
-    .prog-ok { background: linear-gradient(90deg, #2a6040, var(--ok)); }
-    .prog-lv { background: linear-gradient(90deg, #3322aa, #7766ff); }
+    /* ── LAYOUT ── */
+    .layout-2 { display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px; }
+    .layout-3 { display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px; }
 
-    /* ── CARDS ── */
-    .card {
-      background: var(--g1);
-      border: 1px solid var(--gb);
-      border-radius: 2px;
-      padding: 24px;
-      position: relative; overflow: hidden;
-    }
-    .card::before {
-      content: ''; position: absolute; inset: 0; pointer-events: none;
-      background: linear-gradient(135deg, rgba(180,170,255,0.03) 0%, transparent 55%);
-    }
-    .card-title {
-      font-family: var(--serif);
-      font-size: 18px; font-weight: 600; font-style: italic;
-      color: var(--cream); margin-bottom: 18px;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .ctag {
-      font-size: 9px; font-family: var(--mono);
-      letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--crL); background: var(--crBg);
-      border: 1px solid var(--crBd);
-      padding: 3px 10px; border-radius: 2px;
-      font-style: normal;
-    }
+    /* ── CARD ── */
+    .card { background:var(--card);border:1px solid var(--cardb);border-radius:12px;padding:24px;backdrop-filter:blur(16px);position:relative;overflow:hidden; }
+    .card::before { content:'';position:absolute;inset:0;border-radius:12px;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,0.05) 0%,transparent 60%); }
+    .card-title { font-family:var(--serif);font-size:18px;font-weight:600;font-style:italic;color:#fff;margin-bottom:16px;display:flex;align-items:center;gap:10px; }
+    .ctag { font-size:9px;font-family:var(--mono);letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,200,200,0.9);background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);padding:3px 10px;border-radius:4px;font-style:normal; }
 
     /* ── QUICK ACTIONS ── */
-    .actions-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
+    .action-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+    .action-btn {
+      padding:14px;border-radius:10px;
+      background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
+      color:#fff;font-size:12px;font-weight:600;font-family:var(--font);
+      cursor:pointer;transition:all 0.18s;text-decoration:none;
+      display:flex;align-items:center;gap:10px;
     }
-    .action-card {
-      background: var(--g1);
-      border: 1px solid var(--gb);
-      border-radius: 2px;
-      padding: 20px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
-      display: block;
-    }
-    .action-card:hover {
-      border-color: var(--crBd);
-      background: var(--crBg);
-      transform: translateY(-2px);
-    }
-    .action-icon {
-      font-size: 28px; margin-bottom: 12px;
-    }
-    .action-title {
-      font-size: 13px; font-weight: 600;
-      color: var(--cream); margin-bottom: 4px;
-    }
-    .action-sub {
-      font-size: 11px; color: var(--muted);
-      line-height: 1.5;
-    }
+    .action-btn:hover { background:rgba(255,255,255,0.13);border-color:rgba(255,255,255,0.25);transform:translateY(-1px); }
+    .action-icon { font-size:22px; }
+    .action-label { font-size:12px;font-weight:600; }
+    .action-sub { font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px; }
 
-    /* ── BOTTOM GRID ── */
-    .bottom-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-top: 20px;
-    }
+    /* ── ACTIVITY ── */
+    .activity-list { display:flex;flex-direction:column;gap:12px; }
+    .activity-item { display:flex;align-items:flex-start;gap:12px; }
+    .act-dot { width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.3);margin-top:4px;flex-shrink:0; }
+    .act-dot.green { background:var(--ok); }
+    .act-dot.yellow { background:var(--warn); }
+    .act-text { font-size:12px;color:rgba(255,255,255,0.7);line-height:1.5; }
+    .act-time { font-size:10px;font-family:var(--mono);color:var(--muted);margin-top:2px; }
 
-    /* Recent activity */
-    .activity-item {
-      display: flex; align-items: flex-start; gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--gb);
-    }
-    .activity-item:last-child { border-bottom: none; }
-    .activity-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      margin-top: 5px; flex-shrink: 0;
-    }
-    .activity-txt {
-      font-size: 12px; color: var(--cream2); line-height: 1.5;
-    }
-    .activity-time {
-      font-size: 10px; color: var(--muted);
-      font-family: var(--mono); margin-top: 2px;
-    }
+    /* ── STATUS ── */
+    .status-list { display:flex;flex-direction:column;gap:10px; }
+    .status-item { display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08); }
+    .st-label { font-size:12px;color:rgba(255,255,255,0.75); }
+    .st-badge { font-size:9px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;padding:3px 10px;border-radius:4px; }
+    .badge-ok   { background:rgba(100,220,140,0.12);border:1px solid rgba(100,220,140,0.25);color:var(--ok); }
+    .badge-warn { background:rgba(255,200,80,0.12); border:1px solid rgba(255,200,80,0.25); color:var(--warn); }
+    .badge-off  { background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:var(--muted); }
 
-    /* System status */
-    .status-item {
-      display: flex; align-items: center;
-      justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--gb);
-    }
-    .status-item:last-child { border-bottom: none; }
-    .status-name { font-size: 12px; color: var(--cream2); }
-    .status-badge {
-      font-size: 9px; font-family: var(--mono);
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 3px 10px; border-radius: 2px;
-    }
-    .badge-ok  { background: rgba(90,158,111,0.12); border: 1px solid rgba(90,158,111,0.3); color: var(--ok); }
-    .badge-warn{ background: rgba(200,149,58,0.12);  border: 1px solid rgba(200,149,58,0.3);  color: #c8953a; }
-    .badge-off { background: var(--g1); border: 1px solid var(--gb2); color: var(--muted); }
+    /* ── BUTTONS ── */
+    .btn { display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:var(--font);letter-spacing:0.06em;cursor:pointer;transition:all 0.18s; }
+    .btn-primary { background:rgba(255,255,255,0.90);color:var(--cr);box-shadow:0 4px 18px rgba(0,0,0,0.3); }
+    .btn-primary:hover { background:#fff;transform:translateY(-1px); }
+    .btn-ghost { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.8); }
+    .btn-ghost:hover { background:rgba(255,255,255,0.14);color:#fff; }
+    .btn-sm { padding:7px 16px;font-size:11px; }
 
-    /* btn */
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 9px 20px; border: none; border-radius: 2px;
-      font-size: 12px; font-weight: 600; font-family: var(--font);
-      letter-spacing: 0.06em; cursor: pointer; transition: all 0.18s;
+    /* ── GA BANNER ── */
+    .ga-banner {
+      background:rgba(20,5,10,0.70);border:1px solid rgba(255,255,255,0.15);
+      border-radius:12px;padding:22px 28px;margin-bottom:24px;
+      display:flex;align-items:center;gap:20px;backdrop-filter:blur(16px);
     }
-    .btn-primary {
-      background: var(--cr); color: #eeeaff;
-      box-shadow: 0 4px 18px rgba(165,28,48,0.4);
-    }
-    .btn-primary:hover {
-      background: var(--cr2); transform: translateY(-1px);
-    }
-    .btn-ghost {
-      background: var(--g1); border: 1px solid var(--gb2);
-      color: var(--cream2);
-    }
-    .btn-ghost:hover {
-      border-color: var(--crBd); color: var(--crL);
-    }
+    .ga-icon { font-size:36px;flex-shrink:0; }
+    .ga-title { font-family:var(--serif);font-size:20px;font-weight:600;font-style:italic;color:#fff; }
+    .ga-sub   { font-size:11px;font-family:var(--mono);color:var(--muted);margin-top:3px; }
+    .ga-actions { margin-left:auto;display:flex;gap:10px; }
 
-    /* Animation */
-    .fade-up {
-      animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
-    }
-    .fade-up:nth-child(1) { animation-delay: 0.05s; }
-    .fade-up:nth-child(2) { animation-delay: 0.10s; }
-    .fade-up:nth-child(3) { animation-delay: 0.15s; }
-    .fade-up:nth-child(4) { animation-delay: 0.20s; }
-    @keyframes fadeUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
+    @keyframes fadeUp { from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1} }
+    .fade-up { animation:fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+    .delay-1 { animation-delay:0.05s; }
+    .delay-2 { animation-delay:0.10s; }
+    .delay-3 { animation-delay:0.15s; }
   </style>
 </head>
-
 <body>
 
-  <!-- Ambient glows -->
-  <div class="amb" style="width:600px;height:600px;background:#a51c30;opacity:0.07;top:-200px;right:-100px;"></div>
-  <div class="amb" style="width:400px;height:400px;background:#4433cc;opacity:0.06;bottom:-150px;left:100px;"></div>
+<div class="shape s1"></div>
+<div class="shape s2"></div>
+<div class="shape s3"></div>
 
-  <!-- ════ SIDEBAR ════ -->
-  <aside class="sidebar">
-
-    <!-- Logo -->
-    <div class="sidebar-logo">
-      <div class="logo-crest">T</div>
-      <div>
-        <div class="logo-text">BCA<em>.AI</em></div>
-        <div class="logo-sub">Timetable System</div>
-      </div>
+<!-- ════ SIDEBAR ════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-crest">TX</div>
+    <div>
+      <div class="logo-name">Timetrix</div>
+      <div class="logo-sub">BCA Department</div>
     </div>
-
-    <!-- Main nav -->
-    <div class="nav-section">
-      <div class="nav-label">Main</div>
-      <a class="nav-item active" href="dashboard.html">
-        <span class="nav-icon">📊</span> Dashboard
-      </a>
-      <a class="nav-item" href="rooms.html">
-        <span class="nav-icon">🏫</span> Rooms & Labs
-      </a>
-      <a class="nav-item" href="faculty.html">
-        <span class="nav-icon">👩‍🏫</span> Faculty
-      </a>
-      <a class="nav-item" href="ga-engine.html">
-        <span class="nav-icon">🧬</span> GA Engine
-      </a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Main</div>
+    <a class="nav-item active" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+    <a class="nav-item" href="rooms.html"><span class="nav-icon">🏫</span> Rooms & Labs</a>
+    <a class="nav-item" href="faculty.html"><span class="nav-icon">👩‍🏫</span> Faculty</a>
+    <a class="nav-item" href="ga-engine.html"><span class="nav-icon">🧬</span> GA Engine</a>
+    <a class="nav-item" href="subjects.html"><span class="nav-icon">📚</span> Subjects</a>
+  </div>
+  <div class="nav-section" style="margin-top:16px;">
+    <div class="nav-label">Timetable</div>
+    <a class="nav-item" href="timetable-class.html"><span class="nav-icon">📅</span> By Class</a>
+    <a class="nav-item" href="timetable-faculty.html"><span class="nav-icon">👤</span> By Faculty</a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-role" id="user-role">HOD</div>
+      <div class="user-email" id="user-email">hod@bca.edu</div>
     </div>
+    <button class="logout-btn" onclick="logout()">⎋ Logout</button>
+  </div>
+</aside>
 
-    <!-- Timetable nav -->
-    <div class="nav-section" style="margin-top:16px;">
-      <div class="nav-label">Timetable</div>
-      <a class="nav-item" href="timetable-class.html">
-        <span class="nav-icon">📅</span> By Class
-      </a>
-      <a class="nav-item" href="timetable-faculty.html">
-        <span class="nav-icon">👤</span> By Faculty
-      </a>
+<!-- ════ MAIN ════ -->
+<main class="main">
+
+  <!-- Greeting -->
+  <div class="fade-up">
+    <div class="page-eyebrow">// Overview</div>
+    <div class="page-title">Good <strong id="greeting-time">morning</strong>,</div>
+    <div class="greeting-sub" id="greeting-name">Welcome back 👋</div>
+  </div>
+
+  <!-- GA Banner -->
+  <div class="ga-banner fade-up delay-1" id="ga-banner">
+    <div class="ga-icon">🧬</div>
+    <div>
+      <div class="ga-title" id="ga-banner-title">Timetable not generated yet</div>
+      <div class="ga-sub"   id="ga-banner-sub">Run the GA Engine to generate a conflict-free timetable</div>
     </div>
-
-    <!-- User + Logout -->
-    <div class="sidebar-bottom">
-      <div class="user-card">
-        <div class="user-role" id="user-role">HOD</div>
-        <div class="user-email" id="user-email">hod@bca.edu</div>
-      </div>
-      <button class="logout-btn" onclick="logout()">⎋ Logout</button>
+    <div class="ga-actions">
+      <a href="timetable-class.html" class="btn btn-ghost btn-sm">📅 View Timetable</a>
+      <a href="ga-engine.html"       class="btn btn-primary btn-sm">🧬 Run GA Engine</a>
     </div>
+  </div>
 
-  </aside>
-
-  <!-- ════ MAIN CONTENT ════ -->
-  <main class="main">
-
-    <!-- Page Header -->
-    <div class="page-header">
-      <div>
-        <div class="page-eyebrow">// Overview</div>
-        <div class="page-title">Good morning, <strong id="greeting-name">Professor</strong></div>
-      </div>
-      <div style="display:flex;gap:10px;">
-        <button class="btn btn-ghost" onclick="window.location.href='ga-engine.html'">🧬 Run GA</button>
-        <button class="btn btn-primary" onclick="window.location.href='timetable-class.html'">📅 View Timetable</button>
-      </div>
+  <!-- Stats -->
+  <div class="stats-grid fade-up delay-1">
+    <div class="stat-card">
+      <div class="stat-icon">👩‍🏫</div>
+      <div class="stat-num" id="stat-faculty">0</div>
+      <div class="stat-lbl">Active Faculty</div>
     </div>
-
-    <!-- Stat Cards -->
-    <div class="stats-grid">
-      <div class="stat-card cr fade-up">
-        <div class="stat-ey">Total Faculty</div>
-        <div class="stat-num">12</div>
-        <div class="stat-sub">BCA Department</div>
-        <div class="prog"><div class="prog-fill prog-cr" style="width:75%"></div></div>
-      </div>
-      <div class="stat-card go fade-up">
-        <div class="stat-ey">Classrooms</div>
-        <div class="stat-num">8</div>
-        <div class="stat-sub">4 with projector · 4 without</div>
-        <div class="prog"><div class="prog-fill prog-go" style="width:60%"></div></div>
-      </div>
-      <div class="stat-card ok fade-up">
-        <div class="stat-ey">Labs</div>
-        <div class="stat-num">6</div>
-        <div class="stat-sub">All active · Computer labs</div>
-        <div class="prog"><div class="prog-fill prog-ok" style="width:90%"></div></div>
-      </div>
-      <div class="stat-card lv fade-up">
-        <div class="stat-ey">Batches / Week</div>
-        <div class="stat-num">3</div>
-        <div class="stat-sub">BCA I · II · III year</div>
-        <div class="prog"><div class="prog-fill prog-lv" style="width:100%"></div></div>
-      </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏫</div>
+      <div class="stat-num" id="stat-rooms">0</div>
+      <div class="stat-lbl">Classrooms</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔬</div>
+      <div class="stat-num" id="stat-labs">0</div>
+      <div class="stat-lbl">Labs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🎓</div>
+      <div class="stat-num">9</div>
+      <div class="stat-lbl">Classes</div>
+    </div>
+  </div>
+
+  <div class="layout-3">
 
     <!-- Quick Actions -->
-    <div class="card" style="margin-bottom:20px;">
-      <div class="card-title">Quick Actions <span class="ctag">Shortcuts</span></div>
-      <div class="actions-grid">
-        <a class="action-card" href="rooms.html">
+    <div class="card fade-up delay-2">
+      <div class="card-title">Quick Actions</div>
+      <div class="action-grid">
+        <a href="rooms.html" class="action-btn">
           <div class="action-icon">🏫</div>
-          <div class="action-title">Manage Rooms</div>
-          <div class="action-sub">Add classrooms, labs, set projector availability</div>
+          <div>
+            <div class="action-label">Manage Rooms</div>
+            <div class="action-sub">Add / edit classrooms</div>
+          </div>
         </a>
-        <a class="action-card" href="faculty.html">
+        <a href="faculty.html" class="action-btn">
           <div class="action-icon">👩‍🏫</div>
-          <div class="action-title">Manage Faculty</div>
-          <div class="action-sub">Add faculty, assign subjects, create accounts</div>
+          <div>
+            <div class="action-label">Manage Faculty</div>
+            <div class="action-sub">Add / assign subjects</div>
+          </div>
         </a>
-        <a class="action-card" href="ga-engine.html">
+        <a href="ga-engine.html" class="action-btn">
           <div class="action-icon">🧬</div>
-          <div class="action-title">Generate Timetable</div>
-          <div class="action-sub">Run Genetic Algorithm to create conflict-free timetable</div>
+          <div>
+            <div class="action-label">Generate Timetable</div>
+            <div class="action-sub">Run GA algorithm</div>
+          </div>
+        </a>
+        <a href="timetable-class.html" class="action-btn">
+          <div class="action-icon">📅</div>
+          <div>
+            <div class="action-label">View Timetable</div>
+            <div class="action-sub">By class or faculty</div>
+          </div>
         </a>
       </div>
     </div>
 
-    <!-- Bottom Grid -->
-    <div class="bottom-grid">
-
-      <!-- Recent Activity -->
-      <div class="card">
-        <div class="card-title">Recent Activity <span class="ctag">Log</span></div>
-        <div class="activity-item">
-          <div class="activity-dot" style="background:var(--crL);"></div>
-          <div>
-            <div class="activity-txt">Timetable generated for BCA Sem III</div>
-            <div class="activity-time">Today · 10:32 AM</div>
-          </div>
+    <!-- System Status -->
+    <div class="card fade-up delay-2">
+      <div class="card-title">System Status</div>
+      <div class="status-list">
+        <div class="status-item">
+          <div class="st-label">GA Engine</div>
+          <span class="st-badge" id="status-ga">Not Run</span>
         </div>
-        <div class="activity-item">
-          <div class="activity-dot" style="background:var(--ok);"></div>
-          <div>
-            <div class="activity-txt">Faculty account created — Dr. Sharma</div>
-            <div class="activity-time">Yesterday · 2:15 PM</div>
-          </div>
+        <div class="status-item">
+          <div class="st-label">Timetable Data</div>
+          <span class="st-badge" id="status-tt">Empty</span>
         </div>
-        <div class="activity-item">
-          <div class="activity-dot" style="background:var(--gold);"></div>
-          <div>
-            <div class="activity-txt">Lab 3 marked unavailable on Fridays</div>
-            <div class="activity-time">2 days ago · 11:00 AM</div>
-          </div>
+        <div class="status-item">
+          <div class="st-label">Faculty Setup</div>
+          <span class="st-badge" id="status-faculty">Pending</span>
         </div>
-        <div class="activity-item">
-          <div class="activity-dot" style="background:#7766ff;"></div>
-          <div>
-            <div class="activity-txt">Room A-301 projector updated</div>
-            <div class="activity-time">3 days ago · 9:45 AM</div>
-          </div>
+        <div class="status-item">
+          <div class="st-label">Rooms Setup</div>
+          <span class="st-badge" id="status-rooms">Pending</span>
+        </div>
+        <div class="status-item">
+          <div class="st-label">Labs Setup</div>
+          <span class="st-badge" id="status-labs">Pending</span>
         </div>
       </div>
-
-      <!-- System Status -->
-      <div class="card">
-        <div class="card-title">System Status <span class="ctag">Live</span></div>
-        <div class="status-item">
-          <span class="status-name">GA Engine</span>
-          <span class="status-badge badge-ok">Ready</span>
-        </div>
-        <div class="status-item">
-          <span class="status-name">Timetable — BCA Sem I</span>
-          <span class="status-badge badge-ok">Generated</span>
-        </div>
-        <div class="status-item">
-          <span class="status-name">Timetable — BCA Sem III</span>
-          <span class="status-badge badge-ok">Generated</span>
-        </div>
-        <div class="status-item">
-          <span class="status-name">Timetable — BCA Sem V</span>
-          <span class="status-badge badge-warn">Pending</span>
-        </div>
-        <div class="status-item">
-          <span class="status-name">Lab Schedule</span>
-          <span class="status-badge badge-ok">Synced</span>
-        </div>
-        <div class="status-item">
-          <span class="status-name">Faculty Accounts</span>
-          <span class="status-badge badge-warn">2 Pending</span>
-        </div>
-      </div>
-
     </div>
 
-  </main>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="card fade-up delay-3">
+    <div class="card-title">Recent Activity <span class="ctag">Live</span></div>
+    <div class="activity-list" id="activity-list">
+      <div class="activity-item">
+        <div class="act-dot"></div>
+        <div>
+          <div class="act-text">System initialized — welcome to Timetrix!</div>
+          <div class="act-time">Just now</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
 
 <script>
-  // ── CHECK LOGIN ──────────────────────────────
-  // If no session → redirect to login
-  const session = sessionStorage.getItem('bca_user');
-  if (!session) {
-    window.location.href = 'index.html';
-  } else {
-    const user = JSON.parse(session);
+// ── AUTH ──────────────────────────────────────────
+const session = sessionStorage.getItem('bca_user');
+if (!session) { window.location.href='index.html'; }
+else {
+  const u = JSON.parse(session);
+  document.getElementById('user-role').textContent  = u.role.toUpperCase();
+  document.getElementById('user-email').textContent = u.email;
 
-    // Show user info in sidebar
-    document.getElementById('user-role').textContent  = user.role.toUpperCase();
-    document.getElementById('user-email').textContent = user.email;
+  // Greeting
+  const name = u.email.split('@')[0];
+  const hr   = new Date().getHours();
+  const tod  = hr < 12 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
+  document.getElementById('greeting-time').textContent = tod;
+  document.getElementById('greeting-name').textContent = `${name.charAt(0).toUpperCase()+name.slice(1)} 👋`;
 
-    // Greeting name
-    const name = user.email.split('@')[0];
-    document.getElementById('greeting-name').textContent =
-      name.charAt(0).toUpperCase() + name.slice(1);
+  // Hide admin actions for student/faculty
+  if (u.role === 'student' || u.role === 'faculty') {
+    document.querySelectorAll('.action-btn').forEach((b,i) => {
+      if (i < 2) b.style.display = 'none';
+    });
   }
+}
+function logout() { sessionStorage.removeItem('bca_user'); window.location.href='index.html'; }
 
-  // ── LOGOUT ──────────────────────────────────
-  function logout() {
-    sessionStorage.removeItem('bca_user');
-    window.location.href = 'index.html';
-  }
+// ── LOAD STATS ────────────────────────────────────
+const rooms    = JSON.parse(localStorage.getItem('bca_rooms')     || '[]');
+const labs     = JSON.parse(localStorage.getItem('bca_labs')      || '[]');
+const faculty  = JSON.parse(localStorage.getItem('bca_faculty')   || '[]');
+const gaResult = JSON.parse(localStorage.getItem('bca_ga_result') || 'null');
+
+document.getElementById('stat-faculty').textContent = faculty.filter(f=>f.active).length;
+document.getElementById('stat-rooms').textContent   = rooms.filter(r=>r.available).length;
+document.getElementById('stat-labs').textContent    = labs.filter(l=>l.available).length;
+
+// ── STATUS BADGES ─────────────────────────────────
+function setBadge(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'st-badge badge-' + type;
+}
+
+setBadge('status-ga',     gaResult ? `Done · ${gaResult.fitness}%` : 'Not Run',   gaResult ? 'ok' : 'warn');
+setBadge('status-tt',     gaResult ? 'Ready' : 'Empty',                            gaResult ? 'ok' : 'warn');
+setBadge('status-faculty', faculty.length > 0 ? `${faculty.length} Added` : 'Pending', faculty.length>0?'ok':'warn');
+setBadge('status-rooms',   rooms.length   > 0 ? `${rooms.length} Added`   : 'Pending', rooms.length>0?'ok':'warn');
+setBadge('status-labs',    labs.length    > 0 ? `${labs.length} Added`    : 'Pending', labs.length>0?'ok':'warn');
+
+// ── GA BANNER ─────────────────────────────────────
+if (gaResult) {
+  document.getElementById('ga-banner-title').textContent = `Timetable generated · Fitness ${gaResult.fitness}%`;
+  document.getElementById('ga-banner-sub').textContent   = `Last run: ${new Date(gaResult.generatedAt).toLocaleString()} · ${gaResult.conflicts} conflicts`;
+  document.getElementById('ga-banner').style.background  = 'rgba(100,220,140,0.08)';
+  document.getElementById('ga-banner').style.borderColor = 'rgba(100,220,140,0.20)';
+}
+
+// ── ACTIVITY ──────────────────────────────────────
+const activities = [];
+if (faculty.length > 0) activities.push({ text:`${faculty.length} faculty member${faculty.length>1?'s':''} added`, time:'Recent', dot:'green' });
+if (rooms.length   > 0) activities.push({ text:`${rooms.length} classroom${rooms.length>1?'s':''} configured`, time:'Recent', dot:'green' });
+if (labs.length    > 0) activities.push({ text:`${labs.length} lab${labs.length>1?'s':''} configured`, time:'Recent', dot:'green' });
+if (gaResult)           activities.push({ text:`GA Engine ran — fitness ${gaResult.fitness}%`, time:new Date(gaResult.generatedAt).toLocaleString(), dot:'green' });
+if (activities.length === 0) activities.push({ text:'No activity yet — start by adding rooms and faculty', time:'Now', dot:'' });
+
+document.getElementById('activity-list').innerHTML = activities.map(a => `
+  <div class="activity-item">
+    <div class="act-dot ${a.dot}"></div>
+    <div>
+      <div class="act-text">${a.text}</div>
+      <div class="act-time">${a.time}</div>
+    </div>
+  </div>`).join('');
 </script>
-
 </body>
 </html>

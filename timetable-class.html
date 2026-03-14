@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timetrix — Timetable by Class</title>
+  <link rel="stylesheet" href="css/output.css">
+  <script src="js/api.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cr:    #a51c30;
+      --cr2:   #8b1526;
+      --card:  rgba(20,5,10,0.60);
+      --cardb: rgba(255,255,255,0.10);
+      --g1:    rgba(255,255,255,0.06);
+      --g2:    rgba(255,255,255,0.10);
+      --muted: rgba(255,255,255,0.40);
+      --cream: #ffffff;
+      --ok:    rgba(100,220,140,0.9);
+      --warn:  rgba(255,200,80,0.9);
+      --font:  'Outfit', sans-serif;
+      --serif: 'Cormorant Garamond', serif;
+      --mono:  'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      background: var(--cr);
+      color: var(--cream);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      position: relative;
+      overflow-x: hidden;
+    }
+    .shape { position:fixed; border-radius:50%; pointer-events:none; z-index:0; }
+    .s1 { width:500px;height:500px;background:rgba(0,0,0,0.15);top:-150px;left:-100px; }
+    .s2 { width:400px;height:400px;background:rgba(0,0,0,0.10);bottom:-100px;right:10%;border-radius:40% 60% 60% 40%; }
+    .s3 { width:300px;height:300px;background:rgba(255,255,255,0.04);top:30%;left:30%; }
+    body::before {
+      content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);
+      background-size:48px 48px;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width:240px;min-height:100vh;background:rgba(20,5,10,0.55);border-right:1px solid rgba(255,255,255,0.10);backdrop-filter:blur(20px);display:flex;flex-direction:column;padding:28px 0;position:fixed;top:0;left:0;z-index:50; }
+    .sidebar-logo { display:flex;align-items:center;gap:12px;padding:0 24px 24px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:20px; }
+    .logo-crest { width:38px;height:38px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:16px;font-weight:700;color:#fff;flex-shrink:0; }
+    .logo-name { font-family:var(--serif);font-size:20px;font-weight:700;color:#fff;line-height:1; }
+    .logo-sub  { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-top:2px; }
+    .nav-section { padding:0 12px;margin-bottom:8px; }
+    .nav-label { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0 12px;margin-bottom:6px; }
+    .nav-item { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;color:rgba(255,255,255,0.45);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;text-decoration:none;margin-bottom:2px; }
+    .nav-item:hover { background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8); }
+    .nav-item.active { background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff; }
+    .nav-icon { font-size:16px;width:20px;text-align:center; }
+    .sidebar-bottom { margin-top:auto;padding:20px 24px 0;border-top:1px solid rgba(255,255,255,0.08); }
+    .user-card { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:12px;margin-bottom:10px; }
+    .user-role  { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,200,200,0.8);margin-bottom:3px; }
+    .user-email { font-size:11px;color:rgba(255,255,255,0.5);font-family:var(--mono); }
+    .logout-btn { width:100%;padding:9px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:rgba(255,255,255,0.4);font-size:11px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s; }
+    .logout-btn:hover { border-color:rgba(255,255,255,0.35);color:#fff;background:rgba(255,255,255,0.08); }
+
+    /* ── MAIN ── */
+    .main { margin-left:240px;flex:1;padding:36px 40px;position:relative;z-index:1; }
+    .page-eyebrow { font-size:9px;font-family:var(--mono);letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,200,200,0.8);margin-bottom:6px; }
+    .page-title { font-family:var(--serif);font-size:42px;font-weight:300;color:#fff;line-height:1.08;margin-bottom:28px; }
+    .page-title strong { font-weight:700;font-style:italic; }
+
+    /* ── CARD ── */
+    .card { background:var(--card);border:1px solid var(--cardb);border-radius:12px;padding:24px;backdrop-filter:blur(16px);position:relative;overflow:hidden; }
+    .card::before { content:'';position:absolute;inset:0;border-radius:12px;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,0.05) 0%,transparent 60%); }
+
+    /* ── CLASS SELECTOR ── */
+    .class-selector { display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px; }
+    .class-btn {
+      padding:8px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);
+      background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6);
+      font-size:12px;font-weight:600;font-family:var(--mono);
+      cursor:pointer;transition:all 0.18s;
+    }
+    .class-btn:hover { background:rgba(255,255,255,0.12);color:#fff; }
+    .class-btn.active { background:rgba(255,255,255,0.20);border-color:rgba(255,255,255,0.40);color:#fff; }
+
+    /* ── YEAR GROUP LABEL ── */
+    .year-label { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,200,200,0.7);margin-bottom:8px;margin-top:4px; }
+
+    /* ── BUTTONS ── */
+    .btn { display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:var(--font);letter-spacing:0.06em;cursor:pointer;transition:all 0.18s; }
+    .btn-primary { background:rgba(255,255,255,0.90);color:var(--cr);box-shadow:0 4px 18px rgba(0,0,0,0.3); }
+    .btn-primary:hover { background:#fff;transform:translateY(-1px); }
+    .btn-ghost { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.8); }
+    .btn-ghost:hover { background:rgba(255,255,255,0.14);color:#fff; }
+    .btn-sm { padding:7px 16px;font-size:11px; }
+
+    /* ── TIMETABLE ── */
+    .tt-wrap { overflow-x:auto;margin-top:4px; }
+    .tt-table { width:100%;border-collapse:collapse;min-width:800px; }
+    .tt-table th {
+      background:rgba(255,255,255,0.10);
+      color:rgba(255,255,255,0.8);
+      font-size:10px;font-family:var(--mono);letter-spacing:0.12em;
+      text-transform:uppercase;padding:10px 8px;
+      border:1px solid rgba(255,255,255,0.08);
+      text-align:center;font-weight:600;
+    }
+    .tt-table th.time-col { width:90px;background:rgba(255,255,255,0.06); }
+    .tt-table td {
+      border:1px solid rgba(255,255,255,0.07);
+      padding:6px;vertical-align:top;
+      min-height:60px;height:60px;
+    }
+    .tt-table td.time-cell {
+      font-size:9px;font-family:var(--mono);color:rgba(255,255,255,0.4);
+      text-align:center;background:rgba(255,255,255,0.03);
+      vertical-align:middle;padding:8px 6px;white-space:nowrap;
+    }
+    .tt-table td.lunch-cell {
+      background:rgba(0,0,0,0.20);text-align:center;vertical-align:middle;
+      font-size:10px;font-family:var(--mono);color:rgba(255,255,255,0.25);
+      letter-spacing:0.1em;
+    }
+    .tt-table tr:hover td:not(.time-cell):not(.lunch-cell) { background:rgba(255,255,255,0.02); }
+
+    /* ── CELL SUBJECT CARD ── */
+    .cell-subject {
+      border-radius:6px;padding:6px 8px;height:100%;
+      display:flex;flex-direction:column;justify-content:center;
+      min-height:48px;cursor:default;
+      transition:transform 0.15s;
+    }
+    .cell-subject:hover { transform:scale(1.02); }
+    .cs-name { font-size:11px;font-weight:600;color:#fff;line-height:1.3;margin-bottom:2px; }
+    .cs-faculty { font-size:9px;font-family:var(--mono);color:rgba(255,255,255,0.55); }
+    .cs-room { font-size:9px;font-family:var(--mono);color:rgba(255,255,255,0.40);margin-top:1px; }
+
+    /* Cell colors by type */
+    .type-theory { background:rgba(100,150,255,0.18);border:1px solid rgba(100,150,255,0.25); }
+    .type-lab    { background:rgba(100,220,140,0.14);border:1px solid rgba(100,220,140,0.22); }
+    .type-lang   { background:rgba(255,200,80,0.14); border:1px solid rgba(255,200,80,0.22); }
+    .type-project{ background:rgba(200,130,255,0.14);border:1px solid rgba(200,130,255,0.22); }
+    .type-free   { background:transparent;border:none; }
+
+    /* Lab spanning cell */
+    .lab-span { grid-row:span 3; }
+
+    /* ── NO TIMETABLE ── */
+    .no-tt { text-align:center;padding:48px;color:var(--muted); }
+    .no-tt-icon { font-size:48px;margin-bottom:14px;opacity:0.5; }
+    .no-tt-title { font-family:var(--serif);font-size:22px;font-style:italic;color:rgba(255,255,255,0.6);margin-bottom:8px; }
+    .no-tt-sub { font-size:12px;font-family:var(--mono); }
+
+    /* ── INFO BAR ── */
+    .info-bar { display:flex;gap:20px;flex-wrap:wrap;margin-bottom:18px;padding:14px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px; }
+    .info-item { display:flex;align-items:center;gap:8px; }
+    .info-dot { width:10px;height:10px;border-radius:2px;flex-shrink:0; }
+    .info-label { font-size:10px;font-family:var(--mono);color:rgba(255,255,255,0.55); }
+
+    /* ── BATCH TAG ── */
+    .batch-tag { display:inline-block;font-size:8px;font-family:var(--mono);padding:1px 6px;border-radius:3px;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);margin-left:4px; }
+
+    @keyframes fadeUp { from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1} }
+    .fade-up { animation:fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+
+    @media print {
+      .sidebar, .page-eyebrow, .class-selector, .btn, .info-bar, .year-label { display:none!important; }
+      .main { margin-left:0!important;padding:16px!important; }
+      body { background:#fff!important; }
+      .tt-table th { background:#eee!important;color:#333!important; }
+      .tt-table td { border-color:#ddd!important; }
+      .cs-name { color:#111!important; }
+      .cs-faculty,.cs-room { color:#555!important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="shape s1"></div>
+<div class="shape s2"></div>
+<div class="shape s3"></div>
+
+<!-- ════ SIDEBAR ════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-crest">TX</div>
+    <div>
+      <div class="logo-name">Timetrix</div>
+      <div class="logo-sub">BCA Department</div>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Main</div>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+    <a class="nav-item" href="rooms.html"><span class="nav-icon">🏫</span> Rooms & Labs</a>
+    <a class="nav-item" href="faculty.html"><span class="nav-icon">👩‍🏫</span> Faculty</a>
+    <a class="nav-item" href="ga-engine.html"><span class="nav-icon">🧬</span> GA Engine</a>
+    <a class="nav-item" href="subjects.html"><span class="nav-icon">📚</span> Subjects</a>
+  </div>
+  <div class="nav-section" style="margin-top:16px;">
+    <div class="nav-label">Timetable</div>
+    <a class="nav-item active" href="timetable-class.html"><span class="nav-icon">📅</span> By Class</a>
+    <a class="nav-item" href="timetable-faculty.html"><span class="nav-icon">👤</span> By Faculty</a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-role" id="user-role">HOD</div>
+      <div class="user-email" id="user-email">hod@bca.edu</div>
+    </div>
+    <button class="logout-btn" onclick="logout()">⎋ Logout</button>
+  </div>
+</aside>
+
+<!-- ════ MAIN ════ -->
+<main class="main">
+
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
+    <div>
+      <div class="page-eyebrow">// Class Timetable</div>
+      <div class="page-title">Timetable <strong>by Class</strong></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+      <button class="btn btn-primary btn-sm" onclick="exportCSV()">⎙ Export CSV</button>
+    </div>
+  </div>
+
+  <!-- Class Selector -->
+  <div class="card fade-up" style="margin-bottom:20px;">
+    <div style="margin-bottom:12px;">
+      <div class="year-label">I Year</div>
+      <div class="class-selector" id="selector-1">
+        <button class="class-btn active" onclick="selectClass('I_A')">I BCA A</button>
+        <button class="class-btn" onclick="selectClass('I_B')">I BCA B</button>
+      </div>
+      <div class="year-label">II Year</div>
+      <div class="class-selector" id="selector-2">
+        <button class="class-btn" onclick="selectClass('II_A')">II BCA A</button>
+        <button class="class-btn" onclick="selectClass('II_B')">II BCA B</button>
+        <button class="class-btn" onclick="selectClass('II_C')">II BCA C</button>
+        <button class="class-btn" onclick="selectClass('II_D')">II BCA D</button>
+      </div>
+      <div class="year-label">III Year</div>
+      <div class="class-selector" id="selector-3">
+        <button class="class-btn" onclick="selectClass('III_A')">III BCA A</button>
+        <button class="class-btn" onclick="selectClass('III_B')">III BCA B</button>
+        <button class="class-btn" onclick="selectClass('III_C')">III BCA C</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="info-bar fade-up">
+    <div class="info-item"><div class="info-dot" style="background:rgba(100,150,255,0.6)"></div><div class="info-label">Theory</div></div>
+    <div class="info-item"><div class="info-dot" style="background:rgba(100,220,140,0.6)"></div><div class="info-label">Lab (3hr block)</div></div>
+    <div class="info-item"><div class="info-dot" style="background:rgba(255,200,80,0.6)"></div><div class="info-label">Language (K/H/S)</div></div>
+    <div class="info-item"><div class="info-dot" style="background:rgba(200,130,255,0.6)"></div><div class="info-label">Project</div></div>
+    <div class="info-item"><div class="info-dot" style="background:rgba(0,0,0,0.3)"></div><div class="info-label">Lunch / Free</div></div>
+    <div style="margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--muted)" id="tt-meta">—</div>
+  </div>
+
+  <!-- Timetable -->
+  <div class="card fade-up" id="tt-card">
+    <div id="tt-container"></div>
+  </div>
+
+</main>
+
+<script>
+// ── AUTH ──────────────────────────────────────
+const session = sessionStorage.getItem('bca_user');
+if (!session) { window.location.href='index.html'; }
+else {
+  const u = JSON.parse(session);
+  document.getElementById('user-role').textContent  = u.role.toUpperCase();
+  document.getElementById('user-email').textContent = u.email;
+}
+function logout() { sessionStorage.removeItem('bca_user'); window.location.href='index.html'; }
+
+// ── CONFIG ────────────────────────────────────
+const DAYS  = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+const SLOTS = [
+  '8:00 – 9:00','9:00 – 10:00','10:00 – 11:00','11:00 – 12:00',
+  'LUNCH',
+  '1:00 – 2:00','2:00 – 3:00','3:00 – 4:00','4:00 – 5:00'
+];
+const WORK_SLOTS = [0,1,2,3,5,6,7,8];
+const SAT_SLOTS  = [0,1,2,3];
+
+const CLASS_NAMES = {
+  I_A:'I BCA — Section A',   I_B:'I BCA — Section B',
+  II_A:'II BCA — Section A', II_B:'II BCA — Section B',
+  II_C:'II BCA — Section C', II_D:'II BCA — Section D',
+  III_A:'III BCA — Section A',III_B:'III BCA — Section B',III_C:'III BCA — Section C'
+};
+
+// ── LOAD GA RESULT ────────────────────────────
+const gaResult = JSON.parse(localStorage.getItem('bca_ga_result') || 'null');
+
+// ── SELECT CLASS ──────────────────────────────
+let currentClass = 'I_A';
+
+function selectClass(id) {
+  currentClass = id;
+  document.querySelectorAll('.class-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.cls === id);
+  });
+  renderTimetable(id);
+}
+
+// Set data-cls on buttons
+document.querySelectorAll('.class-btn').forEach(b => {
+  const map = {
+    'I BCA A':'I_A','I BCA B':'I_B',
+    'II BCA A':'II_A','II BCA B':'II_B','II BCA C':'II_C','II BCA D':'II_D',
+    'III BCA A':'III_A','III BCA B':'III_B','III BCA C':'III_C'
+  };
+  b.dataset.cls = map[b.textContent.trim()] || b.textContent.trim();
+});
+
+// ── RENDER ────────────────────────────────────
+function renderTimetable(classId) {
+  const container = document.getElementById('tt-container');
+  const metaEl    = document.getElementById('tt-meta');
+
+  // Update meta
+  if (gaResult) {
+    metaEl.textContent = `Generated ${new Date(gaResult.generatedAt).toLocaleDateString()} · Fitness ${gaResult.fitness}%`;
+  } else {
+    metaEl.textContent = 'No timetable yet — Run GA Engine first';
+  }
+
+  if (!gaResult || !gaResult.schedule || !gaResult.schedule[classId]) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:48px;color:rgba(255,255,255,0.4);">
+        <div style="font-size:48px;margin-bottom:14px;">🧬</div>
+        <div style="font-family:var(--serif);font-size:22px;font-style:italic;color:rgba(255,255,255,0.6);margin-bottom:8px;">
+          No timetable generated yet
+        </div>
+        <div style="font-size:12px;font-family:var(--mono);margin-bottom:20px;">
+          Go to GA Engine and run the algorithm first
+        </div>
+        <a href="ga-engine.html" style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;background:rgba(255,255,255,0.9);color:#a51c30;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;">
+          🧬 Go to GA Engine
+        </a>
+      </div>`;
+    return;
+  }
+
+  const classSchedule = gaResult.schedule[classId];
+
+  let html = `
+    <div style="font-family:var(--serif);font-size:18px;font-weight:600;font-style:italic;color:#fff;margin-bottom:16px;">
+      ${CLASS_NAMES[classId]}
+    </div>
+    <div class="tt-wrap">
+    <table class="tt-table">
+      <thead>
+        <tr>
+          <th class="time-col">Time</th>
+          ${DAYS.map(d=>`<th>${d}${d==='Sat'?'<br><span style="font-size:8px;opacity:0.5">Half Day</span>':''}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>`;
+
+  SLOTS.forEach((slotLabel, si) => {
+    html += `<tr>`;
+    html += `<td class="time-cell">${slotLabel}</td>`;
+
+    if (si === 4) {
+      // Lunch row
+      DAYS.forEach(() => { html += `<td class="lunch-cell">— LUNCH —</td>`; });
+    } else {
+      const slotIndex = si < 4 ? si : si - 1; // skip lunch index
+
+      DAYS.forEach(day => {
+        const slots = day === 'Sat' ? SAT_SLOTS : WORK_SLOTS;
+        const realSlot = WORK_SLOTS[si < 4 ? si : si - 1];
+
+        // Saturday half day — no afternoon
+        if (day === 'Sat' && !SAT_SLOTS.includes(realSlot)) {
+          html += `<td></td>`;
+          return;
+        }
+
+        const cell = classSchedule?.[day]?.[realSlot];
+
+        if (!cell) {
+          html += `<td></td>`;
+          return;
+        }
+
+        const typeClass = `type-${cell.type || 'theory'}`;
+        html += `
+          <td>
+            <div class="cell-subject ${typeClass}">
+              <div class="cs-name">
+                ${cell.subject}
+                ${cell.batch ? `<span class="batch-tag">${cell.batch}</span>` : ''}
+              </div>
+              <div class="cs-faculty">${cell.facultyCode || cell.facultyName || ''}</div>
+              <div class="cs-room">${cell.room || ''}</div>
+            </div>
+          </td>`;
+      });
+    }
+
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  container.innerHTML = html;
+}
+
+// ── EXPORT CSV ────────────────────────────────
+function exportCSV() {
+  if (!gaResult || !gaResult.schedule) {
+    alert('No timetable generated yet! Run GA Engine first.');
+    return;
+  }
+
+  const classSchedule = gaResult.schedule[currentClass];
+  let csv = `${CLASS_NAMES[currentClass]}\nTime,${DAYS.join(',')}\n`;
+
+  SLOTS.forEach((slotLabel, si) => {
+    if (si === 4) { csv += `LUNCH,${DAYS.map(()=>'LUNCH').join(',')}\n`; return; }
+    const realSlot = WORK_SLOTS[si < 4 ? si : si - 1];
+    const row = [slotLabel];
+    DAYS.forEach(day => {
+      const cell = classSchedule?.[day]?.[realSlot];
+      if (!cell) row.push('');
+      else row.push(`"${cell.subject} (${cell.facultyCode||''}) ${cell.room||''}"`);
+    });
+    csv += row.join(',') + '\n';
+  });
+
+  const blob = new Blob([csv], { type:'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `timetable_${currentClass}.csv`;
+  a.click();
+}
+
+// ── INIT ──────────────────────────────────────
+renderTimetable('I_A');
+</script>
+</body>
+</html>
