@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Timetrix — Rooms & Labs</title>
   <link rel="stylesheet" href="css/output.css">
+  <script src="js/api.js"></script>
+  <script src="js/auth-check.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -349,278 +351,269 @@
 </div>
 
 <script>
-  let rooms = JSON.parse(localStorage.getItem('bca_rooms') || '[]');
-  let labs  = JSON.parse(localStorage.getItem('bca_labs')  || '[]');
-  let currentType  = 'room';
-  let editingId    = null;
-  let currentLabId = null;
-  let toggleState  = { projector:false, available:true, 'lab-available':true };
-  let selectedDays = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+  let rooms = [];
+let labs  = [];
+let currentType  = 'room';
+let editingId    = null;
+let currentLabId = null;
+let toggleState  = { projector:false, available:true, 'lab-available':true };
+let selectedDays = ['Mon','Tue','Wed','Thu','Fri','Sat'];
 
-  const TIME_SLOTS = ['8:00–9:00','9:00–10:00','10:00–11:00','11:00–12:00','12:00–1:00','1:00–2:00','2:00–3:00','3:00–4:00','4:00–5:00'];
-  const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+const TIME_SLOTS = ['8:00–9:00','9:00–10:00','10:00–11:00','11:00–12:00','12:00–1:00','1:00–2:00','2:00–3:00','3:00–4:00','4:00–5:00'];
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat'];
 
-  const session = sessionStorage.getItem('bca_user');
-  if (!session) { window.location.href='index.html'; }
-  else {
-    const u = JSON.parse(session);
-    document.getElementById('user-role').textContent  = u.role.toUpperCase();
-    document.getElementById('user-email').textContent = u.email;
-  }
-  function logout() { sessionStorage.removeItem('bca_user'); window.location.href='index.html'; }
+const u = checkAuth(['hod','admin']);
+applyRoleUI(u);
 
-  function saveData() { localStorage.setItem('bca_rooms',JSON.stringify(rooms)); localStorage.setItem('bca_labs',JSON.stringify(labs)); updateStats(); }
+function updateStats() {
+  document.getElementById('stat-rooms').textContent     = rooms.length;
+  document.getElementById('stat-projector').textContent = rooms.filter(r=>r.projector==1||r.projector===true).length;
+  document.getElementById('stat-labs').textContent      = labs.length;
+  document.getElementById('stat-shared').textContent    = labs.filter(l=>l.labtype==='shared').length;
+  document.getElementById('room-count').textContent     = rooms.length+' Rooms';
+  document.getElementById('lab-count').textContent      = labs.length+' Labs';
+}
 
-  function updateStats() {
-    document.getElementById('stat-rooms').textContent     = rooms.length;
-    document.getElementById('stat-projector').textContent = rooms.filter(r=>r.projector).length;
-    document.getElementById('stat-labs').textContent      = labs.length;
-    document.getElementById('stat-shared').textContent    = labs.filter(l=>l.labtype==='shared').length;
-    document.getElementById('room-count').textContent     = rooms.length+' Rooms';
-    document.getElementById('lab-count').textContent      = labs.length+' Labs';
-  }
+function switchTab(tab) {
+  document.getElementById('tab-rooms').style.display = tab==='rooms'?'':'none';
+  document.getElementById('tab-labs').style.display  = tab==='labs'?'':'none';
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='rooms')||(i===1&&tab==='labs')));
+}
 
-  function switchTab(tab) {
-    document.getElementById('tab-rooms').style.display = tab==='rooms'?'':'none';
-    document.getElementById('tab-labs').style.display  = tab==='labs'?'':'none';
-    document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='rooms')||(i===1&&tab==='labs')));
-  }
-
-  function openAddModal(id=null,type='room') {
-    editingId=id; currentType=type;
-    if (id) {
-      const item = type==='room'?rooms.find(r=>r.id===id):labs.find(l=>l.id===id);
-      document.getElementById('modal-title-text').textContent='Edit Resource';
-      document.getElementById('f-name').value=item.name;
-      document.getElementById('f-capacity').value=item.capacity;
-      if (type==='room') {
-        toggleState.projector=item.projector; toggleState.available=item.available;
-        document.getElementById('toggle-projector').classList.toggle('on',item.projector);
-        document.getElementById('toggle-available').classList.toggle('on',item.available);
-      } else {
-        document.getElementById('f-labtype').value=item.labtype;
-        toggleState['lab-available']=item.available;
-        document.getElementById('toggle-lab-available').classList.toggle('on',item.available);
-        selectedDays=[...item.days];
-        document.querySelectorAll('#days-selector .day-btn').forEach(b=>b.classList.toggle('on',selectedDays.includes(b.textContent)));
-        document.getElementById('f-sharedwith').value=item.sharedWith||'';
-        toggleSharedFields(item.labtype);
-      }
+function openAddModal(id=null,type='room') {
+  editingId=id; currentType=type;
+  if (id) {
+    const item = type==='room'?rooms.find(r=>r.id==id):labs.find(l=>l.id==id);
+    document.getElementById('modal-title-text').textContent='Edit Resource';
+    document.getElementById('f-name').value=item.name;
+    document.getElementById('f-capacity').value=item.capacity;
+    if (type==='room') {
+      toggleState.projector=item.projector==1||item.projector===true;
+      toggleState.available=item.available==1||item.available===true;
+      document.getElementById('toggle-projector').classList.toggle('on',toggleState.projector);
+      document.getElementById('toggle-available').classList.toggle('on',toggleState.available);
     } else {
-      document.getElementById('modal-title-text').textContent='Add Resource';
-      document.getElementById('f-name').value=''; document.getElementById('f-capacity').value='';
-      toggleState={projector:false,available:true,'lab-available':true};
-      document.getElementById('toggle-projector').classList.remove('on');
-      document.getElementById('toggle-available').classList.add('on');
-      document.getElementById('toggle-lab-available').classList.add('on');
-      selectedDays=['Mon','Tue','Wed','Thu','Fri','Sat'];
-      document.querySelectorAll('#days-selector .day-btn').forEach(b=>b.classList.add('on'));
-      document.getElementById('f-labtype').value='exclusive';
-      document.getElementById('f-sharedwith').value='';
-      toggleSharedFields('exclusive');
+      document.getElementById('f-labtype').value=item.labtype;
+      toggleState['lab-available']=item.available==1||item.available===true;
+      document.getElementById('toggle-lab-available').classList.toggle('on',toggleState['lab-available']);
+      selectedDays=Array.isArray(item.days)?item.days:(item.days||'').split(',');
+      document.querySelectorAll('#days-selector .day-btn').forEach(b=>b.classList.toggle('on',selectedDays.includes(b.textContent)));
+      document.getElementById('f-sharedwith').value=item.shared_with||'';
+      toggleSharedFields(item.labtype);
     }
-    setType(type);
-    document.getElementById('add-modal').classList.add('show');
+  } else {
+    document.getElementById('modal-title-text').textContent='Add Resource';
+    document.getElementById('f-name').value='';
+    document.getElementById('f-capacity').value='';
+    toggleState={projector:false,available:true,'lab-available':true};
+    document.getElementById('toggle-projector').classList.remove('on');
+    document.getElementById('toggle-available').classList.add('on');
+    document.getElementById('toggle-lab-available').classList.add('on');
+    selectedDays=['Mon','Tue','Wed','Thu','Fri','Sat'];
+    document.querySelectorAll('#days-selector .day-btn').forEach(b=>b.classList.add('on'));
+    document.getElementById('f-labtype').value='exclusive';
+    document.getElementById('f-sharedwith').value='';
+    toggleSharedFields('exclusive');
   }
+  setType(type);
+  document.getElementById('add-modal').classList.add('show');
+}
 
-  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
-  function setType(t) {
-    currentType=t;
-    document.getElementById('room-fields').style.display=t==='room'?'':'none';
-    document.getElementById('lab-fields').style.display=t==='lab'?'':'none';
-    document.getElementById('blocked-section').style.display='none';
-    document.getElementById('type-room').className='btn btn-sm '+(t==='room'?'btn-primary':'btn-ghost');
-    document.getElementById('type-lab').className='btn btn-sm '+(t==='lab'?'btn-primary':'btn-ghost');
-    if (t==='lab') { buildBlockedGrid('blocked-grid'); toggleSharedFields(document.getElementById('f-labtype').value); }
-  }
+function setType(t) {
+  currentType=t;
+  document.getElementById('room-fields').style.display=t==='room'?'':'none';
+  document.getElementById('lab-fields').style.display=t==='lab'?'':'none';
+  document.getElementById('blocked-section').style.display='none';
+  document.getElementById('type-room').className='btn btn-sm '+(t==='room'?'btn-primary':'btn-ghost');
+  document.getElementById('type-lab').className='btn btn-sm '+(t==='lab'?'btn-primary':'btn-ghost');
+  if (t==='lab') { buildBlockedGrid('blocked-grid'); toggleSharedFields(document.getElementById('f-labtype').value); }
+}
 
-  function toggleField(key) {
-    toggleState[key]=!toggleState[key];
-    document.getElementById('toggle-'+key).classList.toggle('on',toggleState[key]);
-  }
+function toggleField(key) {
+  toggleState[key]=!toggleState[key];
+  document.getElementById('toggle-'+key).classList.toggle('on',toggleState[key]);
+}
 
-  function toggleDay(btn,day) {
-    btn.classList.toggle('on');
-    if (selectedDays.includes(day)) selectedDays=selectedDays.filter(d=>d!==day);
-    else selectedDays.push(day);
-  }
+function toggleDay(btn,day) {
+  btn.classList.toggle('on');
+  if (selectedDays.includes(day)) selectedDays=selectedDays.filter(d=>d!==day);
+  else selectedDays.push(day);
+}
 
-  function toggleSharedFields(val) {
-    const isShared=val==='shared';
-    document.getElementById('shared-fields').style.display=isShared?'':'none';
-    document.getElementById('blocked-section').style.display=isShared?'':'none';
-    if (isShared) buildBlockedGrid('blocked-grid');
-  }
+function toggleSharedFields(val) {
+  const isShared=val==='shared';
+  document.getElementById('shared-fields').style.display=isShared?'':'none';
+  document.getElementById('blocked-section').style.display=isShared?'':'none';
+  if (isShared) buildBlockedGrid('blocked-grid');
+}
 
-  function buildBlockedGrid(containerId,existingBlocked=[]) {
-    const c=document.getElementById(containerId);
-    let html='<div class="slot-hd">Time</div>';
-    DAYS.forEach(d=>html+=`<div class="slot-hd">${d}</div>`);
-    TIME_SLOTS.forEach(slot=>{
-      html+=`<div class="slot-time">${slot}</div>`;
-      DAYS.forEach(day=>{
-        const key=`${day}_${slot}`;
-        const blocked=existingBlocked.includes(key);
-        html+=`<div class="slot-cell ${blocked?'blocked':''}" data-key="${key}" onclick="toggleSlot(this)">${blocked?'✕':''}</div>`;
-      });
+function buildBlockedGrid(containerId,existingBlocked=[]) {
+  const c=document.getElementById(containerId);
+  let html='<div class="slot-hd">Time</div>';
+  DAYS.forEach(d=>html+=`<div class="slot-hd">${d}</div>`);
+  TIME_SLOTS.forEach(slot=>{
+    html+=`<div class="slot-time">${slot}</div>`;
+    DAYS.forEach(day=>{
+      const key=`${day}_${slot}`;
+      const blocked=existingBlocked.includes(key);
+      html+=`<div class="slot-cell ${blocked?'blocked':''}" data-key="${key}" onclick="toggleSlot(this)">${blocked?'✕':''}</div>`;
     });
-    c.innerHTML=html;
-  }
+  });
+  c.innerHTML=html;
+}
 
-  function toggleSlot(el) { el.classList.toggle('blocked'); el.textContent=el.classList.contains('blocked')?'✕':''; }
+function toggleSlot(el) { el.classList.toggle('blocked'); el.textContent=el.classList.contains('blocked')?'✕':''; }
 
-  function getBlockedSlots(containerId) {
-    return [...document.querySelectorAll(`#${containerId} .slot-cell.blocked`)].map(el=>el.dataset.key);
-  }
+function getBlockedSlots(containerId) {
+  return [...document.querySelectorAll(`#${containerId} .slot-cell.blocked`)].map(el=>el.dataset.key);
+}
 
-  function saveResource() {
-    const name=document.getElementById('f-name').value.trim();
-    const capacity=document.getElementById('f-capacity').value.trim();
-    if (!name||!capacity) { alert('Please fill in Name and Capacity!'); return; }
-    const id=editingId||Date.now().toString();
+async function saveResource() {
+  const name=document.getElementById('f-name').value.trim();
+  const capacity=document.getElementById('f-capacity').value.trim();
+  if (!name||!capacity) { alert('Please fill in Name and Capacity!'); return; }
+
+  try {
     if (currentType==='room') {
-      const room={id,name,capacity:parseInt(capacity),projector:toggleState.projector,available:toggleState.available,type:'room'};
-      if (editingId) rooms[rooms.findIndex(r=>r.id===editingId)]=room; else rooms.push(room);
+      const data = {
+        name, capacity:parseInt(capacity),
+        projector:toggleState.projector,
+        available:toggleState.available
+      };
+      if (editingId) await Rooms.update(editingId, data);
+      else await Rooms.add(data);
     } else {
       const labtype=document.getElementById('f-labtype').value;
-      const lab={id,name,capacity:parseInt(capacity),labtype,sharedWith:document.getElementById('f-sharedwith').value.trim(),available:toggleState['lab-available'],days:selectedDays,blockedSlots:labtype==='shared'?getBlockedSlots('blocked-grid'):[],type:'lab'};
-      if (editingId) labs[labs.findIndex(l=>l.id===editingId)]=lab; else labs.push(lab);
+      const data = {
+        name, capacity:parseInt(capacity), labtype,
+        shared_with:document.getElementById('f-sharedwith').value.trim(),
+        available:toggleState['lab-available'],
+        days:selectedDays,
+        blockedSlots:labtype==='shared'?getBlockedSlots('blocked-grid'):[]
+      };
+      if (editingId) await Labs.update(editingId, data);
+      else await Labs.add(data);
     }
-    saveData(); renderRooms(); renderLabs(); closeModal('add-modal');
+    await loadFromBackend();
+    closeModal('add-modal');
+  } catch(e) {
+    alert('Error saving! Make sure backend is running.');
   }
+}
 
-  function deleteResource(id,type) {
-    if (!confirm('Delete this resource?')) return;
-    if (type==='room') rooms=rooms.filter(r=>r.id!==id); else labs=labs.filter(l=>l.id!==id);
-    saveData(); renderRooms(); renderLabs();
+async function deleteResource(id,type) {
+  if (!confirm('Delete this resource?')) return;
+  try {
+    if (type==='room') await Rooms.delete(id);
+    else await Labs.delete(id);
+    await loadFromBackend();
+  } catch(e) {
+    alert('Error deleting!');
   }
+}
 
-  function toggleAvailability(id,type) {
-    if (type==='room') rooms.find(r=>r.id===id).available=!rooms.find(r=>r.id===id).available;
-    else labs.find(l=>l.id===id).available=!labs.find(l=>l.id===id).available;
-    saveData(); renderRooms(); renderLabs();
-  }
+async function toggleAvailability(id,type) {
+  try {
+    if (type==='room') {
+      const r=rooms.find(r=>r.id==id);
+      await Rooms.update(id,{...r,available:!(r.available==1||r.available===true)});
+    } else {
+      const l=labs.find(l=>l.id==id);
+      await Labs.update(id,{...l,available:!(l.available==1||l.available===true)});
+    }
+    await loadFromBackend();
+  } catch(e) { console.error(e); }
+}
 
-  function openBlockedModal(labId) {
-    currentLabId=labId;
-    const lab=labs.find(l=>l.id===labId);
-    document.getElementById('blocked-modal-title').textContent=`Blocked Slots — ${lab.name}`;
-    buildBlockedGrid('blocked-grid-main',lab.blockedSlots||[]);
-    document.getElementById('blocked-modal').classList.add('show');
-  }
+function openBlockedModal(labId) {
+  currentLabId=labId;
+  const lab=labs.find(l=>l.id==labId);
+  document.getElementById('blocked-modal-title').textContent=`Blocked Slots — ${lab.name}`;
+  buildBlockedGrid('blocked-grid-main',lab.blockedSlots||[]);
+  document.getElementById('blocked-modal').classList.add('show');
+}
 
-  function saveBlockedSlots() {
-    labs.find(l=>l.id===currentLabId).blockedSlots=getBlockedSlots('blocked-grid-main');
-    saveData(); renderLabs(); closeModal('blocked-modal');
-  }
+async function saveBlockedSlots() {
+  const blocked=getBlockedSlots('blocked-grid-main');
+  const lab=labs.find(l=>l.id==currentLabId);
+  try {
+    await Labs.update(currentLabId,{...lab,blockedSlots:blocked});
+    await loadFromBackend();
+    closeModal('blocked-modal');
+  } catch(e) { alert('Error saving blocked slots!'); }
+}
 
-  function renderRooms() {
-    const c=document.getElementById('rooms-list');
-    if (!rooms.length) { c.innerHTML='<div class="empty-state">No rooms added yet. Click "+ Add Resource" to get started.</div>'; return; }
-    c.innerHTML=rooms.map(r=>`
-      <div class="resource-item ${r.available?'':'unavailable'}">
-        <div class="ri-left">
-          <div class="ri-icon">🏫</div>
-          <div>
-            <div class="ri-name">${r.name}</div>
-            <div class="ri-meta"><span>Capacity: ${r.capacity}</span>${r.projector?'<span>📽 Projector</span>':''}</div>
+function renderRooms() {
+  const c=document.getElementById('rooms-list');
+  if (!rooms.length) { c.innerHTML='<div class="empty-state">No rooms added yet.</div>'; return; }
+  c.innerHTML=rooms.map(r=>`
+    <div class="resource-item ${(r.available==1||r.available===true)?'':'unavailable'}">
+      <div class="ri-left">
+        <div class="ri-icon">🏫</div>
+        <div>
+          <div class="ri-name">${r.name}</div>
+          <div class="ri-meta"><span>Capacity: ${r.capacity}</span>${(r.projector==1||r.projector===true)?'<span>📽 Projector</span>':''}</div>
+        </div>
+      </div>
+      <div class="ri-actions">
+        ${(r.projector==1||r.projector===true)?'<span class="ri-badge badge-proj">Projector</span>':''}
+        <span class="ri-badge ${(r.available==1||r.available===true)?'badge-ok':'badge-off'}">${(r.available==1||r.available===true)?'Available':'Unavailable'}</span>
+        <button class="btn btn-ghost btn-sm" onclick="toggleAvailability('${r.id}','room')">${(r.available==1||r.available===true)?'Mark Off':'Mark On'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="openAddModal('${r.id}','room')">✏ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteResource('${r.id}','room')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderLabs() {
+  const c=document.getElementById('labs-list');
+  if (!labs.length) { c.innerHTML='<div class="empty-state">No labs added yet.</div>'; return; }
+  c.innerHTML=labs.map(l=>`
+    <div class="resource-item ${(l.available==1||l.available===true)?'':'unavailable'}">
+      <div class="ri-left">
+        <div class="ri-icon">🔬</div>
+        <div>
+          <div class="ri-name">${l.name}</div>
+          <div class="ri-meta">
+            <span>Capacity: ${l.capacity}</span>
+            <span>Days: ${Array.isArray(l.days)?l.days.join(', '):l.days}</span>
+            ${l.shared_with?`<span>Shared: ${l.shared_with}</span>`:''}
+            ${l.blockedSlots&&l.blockedSlots.length?`<span>🚫 ${l.blockedSlots.length} blocked</span>`:''}
           </div>
         </div>
-        <div class="ri-actions">
-          ${r.projector?'<span class="ri-badge badge-proj">Projector</span>':''}
-          <span class="ri-badge ${r.available?'badge-ok':'badge-off'}">${r.available?'Available':'Unavailable'}</span>
-          <button class="btn btn-ghost btn-sm" onclick="toggleAvailability('${r.id}','room')">${r.available?'Mark Off':'Mark On'}</button>
-          <button class="btn btn-ghost btn-sm" onclick="openAddModal('${r.id}','room')">✏ Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteResource('${r.id}','room')">✕</button>
-        </div>
-      </div>`).join('');
-  }
+      </div>
+      <div class="ri-actions">
+        <span class="ri-badge ${l.labtype==='shared'?'badge-shared':'badge-ok'}">${l.labtype==='shared'?'Shared':'Exclusive'}</span>
+        <span class="ri-badge ${(l.available==1||l.available===true)?'badge-ok':'badge-off'}">${(l.available==1||l.available===true)?'Available':'Unavailable'}</span>
+        ${l.labtype==='shared'?`<button class="btn btn-ghost btn-sm" onclick="openBlockedModal('${l.id}')">🚫 Slots</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="toggleAvailability('${l.id}','lab')">${(l.available==1||l.available===true)?'Mark Off':'Mark On'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="openAddModal('${l.id}','lab')">✏ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteResource('${l.id}','lab')">✕</button>
+      </div>
+    </div>`).join('');
+}
 
-  function renderLabs() {
-    const c=document.getElementById('labs-list');
-    if (!labs.length) { c.innerHTML='<div class="empty-state">No labs added yet. Click "+ Add Resource" to get started.</div>'; return; }
-    c.innerHTML=labs.map(l=>`
-      <div class="resource-item ${l.available?'':'unavailable'}">
-        <div class="ri-left">
-          <div class="ri-icon">🔬</div>
-          <div>
-            <div class="ri-name">${l.name}</div>
-            <div class="ri-meta">
-              <span>Capacity: ${l.capacity}</span>
-              <span>Days: ${l.days.join(', ')}</span>
-              ${l.sharedWith?`<span>Shared: ${l.sharedWith}</span>`:''}
-              ${l.blockedSlots&&l.blockedSlots.length?`<span>🚫 ${l.blockedSlots.length} blocked</span>`:''}
-            </div>
-          </div>
-        </div>
-        <div class="ri-actions">
-          <span class="ri-badge ${l.labtype==='shared'?'badge-shared':'badge-ok'}">${l.labtype==='shared'?'Shared':'Exclusive'}</span>
-          <span class="ri-badge ${l.available?'badge-ok':'badge-off'}">${l.available?'Available':'Unavailable'}</span>
-          ${l.labtype==='shared'?`<button class="btn btn-ghost btn-sm" onclick="openBlockedModal('${l.id}')">🚫 Slots</button>`:''}
-          <button class="btn btn-ghost btn-sm" onclick="toggleAvailability('${l.id}','lab')">${l.available?'Mark Off':'Mark On'}</button>
-          <button class="btn btn-ghost btn-sm" onclick="openAddModal('${l.id}','lab')">✏ Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteResource('${l.id}','lab')">✕</button>
-        </div>
-      </div>`).join('');
-  }
+function exportData() {
+  const blob=new Blob([JSON.stringify({rooms,labs},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='bca_resources.json'; a.click();
+}
 
-  function exportData() {
-    const blob=new Blob([JSON.stringify({rooms,labs},null,2)],{type:'application/json'});
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='bca_resources.json'; a.click();
-  }
-
-  // ── LOAD FROM BACKEND ─────────────────────────
 async function loadFromBackend() {
   try {
     const [roomsRes, labsRes] = await Promise.all([
       Rooms.getAll(),
       Labs.getAll()
     ]);
-
-    if (Array.isArray(roomsRes)) {
-      rooms = roomsRes.map(r => ({
-        ...r,
-        projector: r.projector === 1,
-        available: r.available === 1
-      }));
-    }
-
-    if (Array.isArray(labsRes)) {
-      labs = labsRes.map(l => ({
-        ...l,
-        available:    l.available === 1,
-        days:         Array.isArray(l.days) ? l.days : (l.days||'').split(','),
-        blockedSlots: l.blockedSlots || []
-      }));
-    }
-
+    if (Array.isArray(roomsRes)) rooms = roomsRes;
+    if (Array.isArray(labsRes))  labs  = labsRes;
   } catch(e) {
-    console.log('Using localStorage fallback');
+    console.log('Backend unavailable');
   }
-
   renderRooms();
   renderLabs();
   updateStats();
-}
-
-// ── OVERRIDE SAVE ─────────────────────────────
-const _origSave = saveData;
-async function saveData() {
-  _origSave();
-  // Also sync to backend
-  try {
-    for (let r of rooms) {
-      if (r._new) { await Rooms.add(r); delete r._new; }
-      else        { await Rooms.update(r.id, r); }
-    }
-    for (let l of labs) {
-      if (l._new) { await Labs.add(l); delete l._new; }
-      else        { await Labs.update(l.id, l); }
-    }
-  } catch(e) {
-    console.log('Backend sync failed, localStorage saved');
-  }
 }
 
 // ── INIT ──────────────────────────────────────

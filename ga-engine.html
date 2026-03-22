@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/output.css">
   <script src="js/ga.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/auth-check.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -436,13 +437,8 @@
 
 <script>
 // ── AUTH ──────────────────────────────────────
-const session = sessionStorage.getItem('bca_user');
-if (!session) { window.location.href = 'index.html'; }
-else {
-  const u = JSON.parse(session);
-  document.getElementById('user-role').textContent  = u.role.toUpperCase();
-  document.getElementById('user-email').textContent = u.email;
-}
+const u = checkAuth(['hod','admin']);
+applyRoleUI(u);
 function logout() { sessionStorage.removeItem('bca_user'); window.location.href='index.html'; }
 
 // ── DATA ──────────────────────────────────────
@@ -453,58 +449,116 @@ let faculty = JSON.parse(localStorage.getItem('bca_faculty') || '[]');
 // Load from backend
 async function loadData() {
   try {
-    const [r, l, f] = await Promise.all([
+    const [r, l, f, s] = await Promise.all([
       Rooms.getAll(),
       Labs.getAll(),
-      Faculty.getAll()
+      Faculty.getAll(),
+      Subjects.getAll()
     ]);
-    if (Array.isArray(r)) rooms   = r;
-    if (Array.isArray(l)) labs    = l;
-    if (Array.isArray(f)) faculty = f;
+
+    if (Array.isArray(r)) rooms = r;
+    if (Array.isArray(l)) labs  = l;
+
+    if (Array.isArray(f) && Array.isArray(s)) {
+      faculty = f.map(fac => ({
+        ...fac,
+        subjects: s
+          .filter(sub => sub.faculty_id == fac.id)
+          .map(sub => sub.name)
+      }));
+    }
+
+    // Update preflight with real counts
+    const avRooms   = rooms.filter(r => r.available==1||r.available===true).length;
+    const avLabs    = labs.filter(l => l.available==1||l.available===true).length;
+    const avFaculty = faculty.filter(f => f.active==1||f.active===true).length;
+    const subjects  = Array.isArray(s) ? s.length : 0;
+
+    const set = (subId, badgeId, sub, text, cls) => {
+      document.getElementById(subId).textContent   = sub;
+      document.getElementById(badgeId).textContent = text;
+      document.getElementById(badgeId).className   = 'check-badge ' + cls;
+    };
+
+    set('check-rooms-sub',    'check-rooms-badge',
+        `${avRooms} available`,
+        avRooms>=2?'Ready':avRooms===1?'Low':'Missing',
+        avRooms>=2?'cb-ok':avRooms===1?'cb-warn':'cb-err');
+
+    set('check-labs-sub',     'check-labs-badge',
+        `${avLabs} available`,
+        avLabs>=1?'Ready':'Missing',
+        avLabs>=1?'cb-ok':'cb-err');
+
+    set('check-faculty-sub',  'check-faculty-badge',
+        `${avFaculty} active`,
+        avFaculty>=2?'Ready':avFaculty===1?'Low':'Missing',
+        avFaculty>=2?'cb-ok':avFaculty===1?'cb-warn':'cb-err');
+
+    set('check-subjects-sub', 'check-subjects-badge',
+        `${subjects} subjects`,
+        subjects>=3?'Ready':subjects>=1?'Low':'None',
+        subjects>=3?'cb-ok':subjects>=1?'cb-warn':'cb-err');
+
+    const allReady   = avRooms>=2 && avLabs>=1 && avFaculty>=2 && subjects>=3;
+    const anyMissing = avRooms===0 || avFaculty===0 || subjects===0;
+    const tag = document.getElementById('ready-tag');
+    tag.textContent = allReady?'✓ Ready':anyMissing?'✗ Not Ready':'⚠ Low Data';
+    tag.style.color = allReady?'var(--ok)':anyMissing?'rgba(255,150,150,0.9)':'var(--warn)';
+
   } catch(e) {
-    console.log('Using localStorage fallback');
+    console.error('Load error:', e);
+    runPreflight();
   }
-  runPreflight();
 }
 
 // ── PRE-FLIGHT ────────────────────────────────
-function runPreflight() {
-  const avRooms   = rooms.filter(r => r.available).length;
-  const avLabs    = labs.filter(l => l.available).length;
-  const avFaculty = faculty.filter(f => f.active !== false).length;
-  const subjects  = faculty.reduce((s,f) => s+(f.subjects||[]).length, 0);
+async function runPreflight() {
+  try {
+    const [r, l, f, s] = await Promise.all([
+      Rooms.getAll(),
+      Labs.getAll(),
+      Faculty.getAll(),
+      Subjects.getAll()
+    ]);
 
-  const set = (subId, badgeId, sub, text, cls) => {
-    document.getElementById(subId).textContent   = sub;
-    document.getElementById(badgeId).textContent = text;
-    document.getElementById(badgeId).className   = 'check-badge ' + cls;
-  };
+    if (Array.isArray(r)) rooms = r;
+    if (Array.isArray(l)) labs  = l;
 
-  set('check-rooms-sub',    'check-rooms-badge',
-      `${avRooms} available`,
-      avRooms>=2?'Ready':avRooms===1?'Low':'Missing',
-      avRooms>=2?'cb-ok':avRooms===1?'cb-warn':'cb-err');
+    if (Array.isArray(f) && Array.isArray(s)) {
+      faculty = f.map(fac => ({
+        ...fac,
+        subjects: s
+          .filter(sub => sub.faculty_id == fac.id)
+          .map(sub => sub.name)
+      }));
+    }
 
-  set('check-labs-sub',     'check-labs-badge',
-      `${avLabs} available`,
-      avLabs>=1?'Ready':'Missing',
-      avLabs>=1?'cb-ok':'cb-err');
+    const avRooms   = rooms.filter(r => r.available==1||r.available===true).length;
+    const avLabs    = labs.filter(l => l.available==1||l.available===true).length;
+    const avFaculty = faculty.filter(f => f.active==1||f.active===true).length;
+    const subjects  = Array.isArray(s) ? s.length : 0;
 
-  set('check-faculty-sub',  'check-faculty-badge',
-      `${avFaculty} active`,
-      avFaculty>=2?'Ready':avFaculty===1?'Low':'Missing',
-      avFaculty>=2?'cb-ok':avFaculty===1?'cb-warn':'cb-err');
+    const set = (subId, badgeId, sub, text, cls) => {
+      document.getElementById(subId).textContent   = sub;
+      document.getElementById(badgeId).textContent = text;
+      document.getElementById(badgeId).className   = 'check-badge ' + cls;
+    };
 
-  set('check-subjects-sub', 'check-subjects-badge',
-      `${subjects} assignments`,
-      subjects>=3?'Ready':subjects>=1?'Low':'None',
-      subjects>=3?'cb-ok':subjects>=1?'cb-warn':'cb-err');
+    set('check-rooms-sub',    'check-rooms-badge',    `${avRooms} available`,    avRooms>=2?'Ready':avRooms===1?'Low':'Missing',    avRooms>=2?'cb-ok':avRooms===1?'cb-warn':'cb-err');
+    set('check-labs-sub',     'check-labs-badge',     `${avLabs} available`,     avLabs>=1?'Ready':'Missing',                       avLabs>=1?'cb-ok':'cb-err');
+    set('check-faculty-sub',  'check-faculty-badge',  `${avFaculty} active`,     avFaculty>=2?'Ready':avFaculty===1?'Low':'Missing', avFaculty>=2?'cb-ok':avFaculty===1?'cb-warn':'cb-err');
+    set('check-subjects-sub', 'check-subjects-badge', `${subjects} assignments`, subjects>=3?'Ready':subjects>=1?'Low':'None',       subjects>=3?'cb-ok':subjects>=1?'cb-warn':'cb-err');
 
-  const allReady   = avRooms>=2 && avLabs>=1 && avFaculty>=2 && subjects>=3;
-  const anyMissing = avRooms===0 || avFaculty===0;
-  const tag = document.getElementById('ready-tag');
-  tag.textContent = allReady ? '✓ Ready' : anyMissing ? '✗ Not Ready' : '⚠ Low Data';
-  tag.style.color = allReady ? 'var(--ok)' : anyMissing ? 'rgba(255,150,150,0.9)' : 'var(--warn)';
+    const allReady   = avRooms>=2 && avLabs>=1 && avFaculty>=2 && subjects>=3;
+    const anyMissing = avRooms===0 || avFaculty===0;
+    const tag = document.getElementById('ready-tag');
+    tag.textContent = allReady ? '✓ Ready' : anyMissing ? '✗ Not Ready' : '⚠ Low Data';
+    tag.style.color = allReady ? 'var(--ok)' : anyMissing ? 'rgba(255,150,150,0.9)' : 'var(--warn)';
+
+  } catch(e) {
+    console.error('Preflight error:', e);
+  }
 }
 
 // ── CANVAS CHART ──────────────────────────────
@@ -566,14 +620,29 @@ function log(msg, type='info') {
 // ── RUN GA ────────────────────────────────────
 let gaRunning = false;
 
-function runGA() {
+async function runGA() {
   if (gaRunning) return;
+  
+  // Force reload data first!
+  await loadData();
+  if (gaRunning) return;
+const activeFaculty = faculty.filter(f => f.active == 1 || f.active === true);
+if (activeFaculty.length === 0) {
+  alert('Please add at least one active faculty member first!');
+  return;
+}
 
-  const activeFaculty = faculty.filter(f => f.active !== false);
-  if (activeFaculty.length === 0) {
-    alert('Please add at least one active faculty member first!');
-    return;
-  }
+// Check subjects
+const totalSubjects = activeFaculty.reduce((s,f) => s+(f.subjects||[]).length, 0);
+log(`Active faculty: ${activeFaculty.length} · Total subjects: ${totalSubjects}`, 'info');
+
+if (totalSubjects === 0) {
+  log('⚠ No subjects found! Loading from backend...', 'warn');
+  await loadData();
+  const retry = faculty.filter(f => f.active == 1 || f.active === true);
+  const retrySubjects = retry.reduce((s,f) => s+(f.subjects||[]).length, 0);
+  log(`After reload — subjects: ${retrySubjects}`, 'info');
+}
 
   gaRunning      = true;
   logStart       = Date.now();
@@ -667,8 +736,22 @@ function runGA() {
         ready:       true,
         schedule
       };
-      localStorage.setItem('bca_ga_result', JSON.stringify(result));
-      log(`✓ Timetable saved to localStorage!`, 'ok');
+     // Save metadata and schedule SEPARATELY (schedule is too large!)
+const meta = {
+  generatedAt: new Date().toISOString(),
+  fitness:     parseFloat(score.toFixed(1)),
+  generations: gen,
+  conflicts:   totalV,
+  violations,
+  ready:       true
+};
+try {
+  localStorage.setItem('bca_ga_result',   JSON.stringify(meta));
+  localStorage.setItem('bca_ga_schedule', JSON.stringify(schedule));
+  log(`✓ Timetable saved to localStorage!`, 'ok');
+} catch(e) {
+  log(`⚠ localStorage full — database only`, 'warn');
+}
 
       // Save to MySQL database
       try {

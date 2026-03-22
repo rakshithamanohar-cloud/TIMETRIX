@@ -3,430 +3,399 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BCA Timetable — Login</title>
+  <title>TimeTrix — Login</title>
   <link rel="stylesheet" href="css/output.css">
   <script src="js/api.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+ 
   <style>
     :root {
       --cr:    #a51c30;
       --cr2:   #8b1526;
       --crL:   #e05050;
-      --crBg:  rgba(165,28,48,0.15);
-      --crBd:  rgba(165,28,48,0.40);
-      --cream: #eeeaff;
-      --muted: rgba(255,255,255,0.45);
-      --g1:    rgba(255,255,255,0.07);
-      --g2:    rgba(255,255,255,0.12);
-      --gb:    rgba(255,255,255,0.12);
-      --gb2:   rgba(255,255,255,0.20);
+      --dark:  #1a0608;
       --font:  'Outfit', sans-serif;
-      --serif: 'Cormorant Garamond', serif;
+      --serif: 'DM Serif Display', serif;
       --mono:  'JetBrains Mono', monospace;
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; overflow: hidden; }
-
+ 
     body {
       font-family: var(--font);
-      background: var(--cr);
-      color: #fff;
       min-height: 100vh;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 0 6% 0 8%;
+      justify-content: center;
       position: relative;
+      overflow: hidden;
     }
-
-    /* ── BACKGROUND SHAPES (like image 1) ── */
-    .shape {
-      position: fixed;
+ 
+    /* ── WARM CRIMSON BACKGROUND ── */
+    .bg-base {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse at 0% 50%,   rgba(165,28,48,0.9)  0%, transparent 55%),
+        radial-gradient(ellipse at 100% 10%, rgba(120,10,28,0.85) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 100%, rgba(180,40,60,0.6)  0%, transparent 45%),
+        radial-gradient(ellipse at 50% 50%,  rgba(100,15,25,0.95) 0%, transparent 80%),
+        #5a0e1a;
+      animation: bgBreath 7s ease-in-out infinite alternate;
+    }
+    @keyframes bgBreath {
+      from { filter: brightness(1); }
+      to   { filter: brightness(1.1); }
+    }
+ 
+    /* ── DOT GRID ── */
+    .bg-dots {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+      background-size: 28px 28px;
+      animation: dotDrift 20s linear infinite;
+    }
+    @keyframes dotDrift {
+      from { background-position: 0 0; }
+      to   { background-position: 28px 28px; }
+    }
+ 
+    /* ── ROTATING ARCS ── */
+    .arc {
+      position: fixed; border-radius: 50%;
+      top: 50%; left: 50%;
+      pointer-events: none; z-index: 1;
+      animation: arcSpin linear infinite;
+    }
+    .arc1 {
+      width: 420px; height: 420px;
+      border: 1px solid rgba(255,255,255,0.12);
+      transform: translate(-50%,-50%);
+      animation-duration: 30s;
+    }
+    .arc2 {
+      width: 620px; height: 620px;
+      border: 1px dashed rgba(255,255,255,0.07);
+      transform: translate(-50%,-50%);
+      animation-duration: 50s;
+      animation-direction: reverse;
+    }
+    .arc3 {
+      width: 820px; height: 820px;
+      border: 1px solid rgba(255,255,255,0.04);
+      transform: translate(-50%,-50%);
+      animation-duration: 70s;
+    }
+    .arc1::before {
+      content: ''; position: absolute;
+      width: 6px; height: 6px;
+      background: rgba(255,200,200,0.9);
       border-radius: 50%;
-      pointer-events: none;
+      top: -3px; left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 10px rgba(255,150,150,0.5);
     }
-    .shape-1 {
-      width: 500px; height: 500px;
-      background: rgba(255,255,255,0.04);
-      top: -150px; left: -100px;
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    .arc2::after {
+      content: ''; position: absolute;
+      width: 4px; height: 4px;
+      background: rgba(255,200,200,0.45);
+      border-radius: 50%;
+      bottom: -2px; right: 25%;
     }
-    .shape-2 {
-      width: 400px; height: 400px;
-      background: rgba(0,0,0,0.10);
-      bottom: -100px; left: 20%;
-      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    @keyframes arcSpin {
+      from { transform: translate(-50%,-50%) rotate(0deg); }
+      to   { transform: translate(-50%,-50%) rotate(360deg); }
     }
-    .shape-3 {
-      width: 300px; height: 300px;
-      background: rgba(255,255,255,0.03);
-      top: 20%; right: 40%;
-      border-radius: 40% 60% 60% 40% / 40% 40% 60% 60%;
+ 
+    /* ── HORIZONTAL LINES ── */
+    .h-line {
+      position: fixed; left: 5%; right: 5%;
+      height: 1px; z-index: 2; pointer-events: none;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
     }
-    .shape-4 {
-      width: 250px; height: 250px;
-      background: rgba(0,0,0,0.08);
-      top: -50px; right: 35%;
-      border: 2px solid rgba(255,255,255,0.06);
-      border-radius: 30% 70% 40% 60%;
+    .h-top { top: 44px; }
+    .h-bot { bottom: 44px; }
+ 
+    /* ── CORNER LABELS ── */
+    .corner {
+      position: fixed; z-index: 10;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
     }
-    /* Grid texture */
-    body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-      background-size: 48px 48px;
-    }
-
-    /* ── LEFT SIDE ── */
-    .left {
-      position: relative; z-index: 10;
-      flex: 1;
-      max-width: 480px;
-      animation: fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) both;
-    }
-    .logo-mark {
-      width: 44px; height: 44px;
-      background: rgba(255,255,255,0.15);
-      border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 4px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--serif); font-style: italic;
-      font-size: 22px; font-weight: 700; color: #fff;
-      margin-bottom: 40px;
-    }
-    .welcome-text {
-      font-family: var(--font);
-      font-size: 72px;
-      font-weight: 800;
-      color: #fff;
-      line-height: 1.0;
-      letter-spacing: -0.02em;
-      margin-bottom: 16px;
-    }
-    .divider-short {
-      width: 48px; height: 2px;
-      background: rgba(255,255,255,0.4);
-      margin-bottom: 20px;
-    }
-    .left-sub {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.75;
-      max-width: 320px;
-      margin-bottom: 32px;
-    }
-    .learn-btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 11px 24px;
-      background: var(--crL);
-      color: #fff;
-      border: none; border-radius: 24px;
-      font-size: 13px; font-weight: 600;
-      font-family: var(--font);
-      cursor: pointer; transition: all 0.2s;
-    }
-    .learn-btn:hover {
-      background: #c04040;
-      transform: translateY(-1px);
-    }
-
-    /* ── RIGHT SIDE — Glass Card ── */
+    .c-tl { top: 24px; left: 28px; }
+    .c-tr { top: 24px; right: 28px; }
+    .c-bl { bottom: 24px; left: 28px; }
+ 
+    /* ── WHITE CARD ── */
     .card {
       position: relative; z-index: 10;
       width: 100%;
-      max-width: 400px;
-      background: rgba(30, 10, 15, 0.55);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 16px;
-      padding: 40px 36px;
-      animation: fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.15s both;
+      max-width: 440px;
+      background: rgba(248,244,242,0.96);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255,255,255,0.9);
+      border-radius: 22px;
+      padding: 48px 42px;
+      margin: 0 16px;
+      box-shadow: 0 28px 70px rgba(60,5,12,0.45), 0 4px 24px rgba(0,0,0,0.15);
+      animation: fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) both;
     }
-    /* Shine on card */
     .card::before {
       content: '';
       position: absolute; inset: 0;
-      border-radius: 16px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 60%);
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, transparent 60%);
       pointer-events: none;
     }
-
+    @keyframes fadeUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+ 
+    /* ── LOGO ── */
+    .card-logo {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; margin-bottom: 8px;
+    }
+    .logo-box {
+      width: 40px; height: 40px;
+      background: var(--cr);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif);
+      font-style: italic; font-size: 19px; color: #fff;
+      box-shadow: 0 4px 16px rgba(165,28,48,0.4);
+    }
+    .logo-name {
+      font-family: var(--serif);
+      font-size: 24px; font-style: italic;
+      color: #1a0608;
+      font-weight: 400;
+    }
     .card-title {
-      font-family: var(--font);
-      font-size: 28px;
-      font-weight: 700;
-      color: #fff;
+      font-family: var(--mono);
+      font-size: 9px;
+      color: rgba(26,6,8,0.55);
       text-align: center;
       margin-bottom: 28px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
     }
-
+ 
     /* ── ROLE BUTTONS ── */
-    .roles {
-      display: flex; gap: 8px;
-      margin-bottom: 24px;
-    }
+    .roles { display: flex; gap: 6px; margin-bottom: 26px; }
     .role-btn {
-      flex: 1; padding: 8px 4px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
+      flex: 1; padding: 9px 4px;
+      background: rgba(165,28,48,0.05);
+      border: 1px solid rgba(165,28,48,0.15);
       border-radius: 8px;
-      color: rgba(255,255,255,0.5);
+      color: rgba(26,6,8,0.6);
       font-size: 10px; font-weight: 600;
       font-family: var(--mono);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      cursor: pointer; transition: all 0.2s;
-      text-align: center;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s; text-align: center;
     }
     .role-btn.active {
-      background: rgba(165,28,48,0.35);
-      border-color: rgba(224,80,80,0.5);
-      color: #ffb3b3;
+      background: rgba(165,28,48,0.12);
+      border-color: rgba(165,28,48,0.45);
+      color: var(--cr);
     }
     .role-btn:hover:not(.active) {
-      background: rgba(255,255,255,0.1);
-      color: rgba(255,255,255,0.8);
+      background: rgba(165,28,48,0.08);
+      color: var(--dark);
     }
-
-    /* ── LABELS ── */
+ 
+    /* ── FIELD LABEL ── */
     .field-label {
       display: block;
-      font-size: 12px; font-weight: 600;
-      color: rgba(255,255,255,0.8);
+      font-size: 13px; font-weight: 600;
+      color: #1a0608;
       margin-bottom: 7px;
       font-family: var(--font);
+      letter-spacing: 0.02em;
     }
-
-    /* ── INPUTS ── */
+ 
+    /* ── WHITE INPUTS ── */
+    .input-wrap { position: relative; }
+    .input-icon {
+      position: absolute;
+      left: 14px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: rgba(165,28,48,0.4);
+      pointer-events: none;
+    }
     .fi {
       width: 100%;
-      padding: 12px 14px 12px 40px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 8px;
-      color: #fff;
-      font-size: 13px;
+      padding: 14px 14px 14px 44px;
+      background: #ffffff;
+      border: 1.5px solid rgba(165,28,48,0.18);
+      border-radius: 10px;
+      color: #1a0608;
+      font-size: 14px;
       font-family: var(--font);
+      font-weight: 500;
       outline: none;
       transition: all 0.2s;
       margin-bottom: 18px;
     }
     .fi:focus {
-      border-color: rgba(224,80,80,0.6);
-      background: rgba(165,28,48,0.15);
-      box-shadow: 0 0 0 3px rgba(165,28,48,0.15);
+      border-color: rgba(165,28,48,0.55);
+      box-shadow: 0 0 0 3px rgba(165,28,48,0.1);
     }
-    .fi::placeholder { color: rgba(255,255,255,0.3); }
-
-    /* ── SUBMIT BUTTON ── */
-    .btn-submit {
-      width: 100%; padding: 13px;
-      background: linear-gradient(135deg, var(--crL), #c0392b);
-      color: #fff;
-      border: none; border-radius: 8px;
-      font-size: 14px; font-weight: 700;
-      font-family: var(--font);
-      letter-spacing: 0.06em;
-      cursor: pointer; transition: all 0.2s;
-      box-shadow: 0 4px 20px rgba(165,28,48,0.5);
-      margin-top: 4px;
+    .fi::placeholder {
+      color: rgba(26,6,8,0.4);
+      font-size: 13px;
+      font-weight: 400;
     }
-    .btn-submit:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 28px rgba(165,28,48,0.6);
-    }
-    .btn-submit.loading {
-      opacity: 0.7; pointer-events: none;
-    }
-    .btn-submit.loading::after {
-      content: '';
-      display: inline-block; width: 13px; height: 13px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin-left: 10px; vertical-align: middle;
-    }
-
+ 
     /* ── ERROR ── */
     .error {
       display: none;
-      background: rgba(165,28,48,0.25);
-      border: 1px solid rgba(224,80,80,0.4);
+      background: rgba(165,28,48,0.08);
+      border: 1px solid rgba(165,28,48,0.25);
       border-radius: 8px;
       padding: 10px 14px;
-      font-size: 12px; color: #ffb3b3;
+      font-size: 12px; color: var(--cr);
       font-family: var(--mono);
       margin-bottom: 14px;
       animation: shake 0.4s ease;
     }
     .error.show { display: block; }
-
-    /* ── DIVIDER ── */
-    .divider {
-      display: flex; align-items: center; gap: 10px;
-      margin: 20px 0;
-    }
-    .div-line { flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
-    .div-txt {
-      font-size: 10px; font-family: var(--mono);
-      color: rgba(255,255,255,0.3); letter-spacing: 0.1em;
-    }
-
-    /* ── DEMO CREDS ── */
-    .demo-box {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px;
-      padding: 14px;
-    }
-    .demo-title {
-      font-size: 9px; font-family: var(--mono);
-      letter-spacing: 0.2em; text-transform: uppercase;
-      color: rgba(255,255,255,0.3); margin-bottom: 10px;
-    }
-    .demo-row {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 7px;
-    }
-    .demo-row:last-child { margin-bottom: 0; }
-    .demo-key {
-      font-size: 11px; color: rgba(255,255,255,0.4);
-      font-family: var(--mono);
-    }
-    .demo-val {
-      font-size: 10px; color: #ffb3b3;
-      font-family: var(--mono);
-      background: rgba(165,28,48,0.25);
-      border: 1px solid rgba(224,80,80,0.3);
-      padding: 2px 8px; border-radius: 4px;
-      cursor: pointer; transition: all 0.15s;
-    }
-    .demo-val:hover { background: rgba(165,28,48,0.4); }
-
-    /* ── NO ACCOUNT NOTE ── */
-    .no-account {
-      text-align: center; margin-top: 16px;
-      font-size: 11px; color: rgba(255,255,255,0.3);
-      font-family: var(--mono); line-height: 1.7;
-    }
-    .no-account span { color: rgba(224,80,80,0.8); }
-
-    /* ── SUCCESS OVERLAY ── */
-    .success-overlay {
-      position: fixed; inset: 0; z-index: 999;
-      background: #8b1526;
-      display: flex; align-items: center; justify-content: center;
-      flex-direction: column; gap: 14px;
-      opacity: 0; pointer-events: none; transition: opacity 0.4s;
-    }
-    .success-overlay.show { opacity: 1; pointer-events: all; }
-
-    /* ── ANIMATIONS ── */
-    @keyframes fadeUp {
-      from { transform: translateY(30px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
     @keyframes shake {
       0%,100% { transform: translateX(0); }
       25%      { transform: translateX(-6px); }
       75%      { transform: translateX(6px); }
     }
+ 
+    /* ── SUBMIT BUTTON ── */
+    .btn-submit {
+      width: 100%; padding: 15px;
+      background: linear-gradient(135deg, var(--crL), var(--cr));
+      color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 700;
+      font-family: var(--font);
+      letter-spacing: 0.1em;
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 8px 28px rgba(165,28,48,0.4);
+      margin-top: 2px;
+    }
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 36px rgba(165,28,48,0.55);
+    }
+    .btn-submit.loading { opacity: 0.7; pointer-events: none; }
+    .btn-submit.loading::after {
+      content: '';
+      display: inline-block; width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-left: 10px; vertical-align: middle;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
+ 
+    /* ── NO ACCOUNT ── */
+    .no-account {
+      text-align: center; margin-top: 18px;
+      font-size: 11px; color: rgba(26,6,8,0.45);
+      font-family: var(--mono); line-height: 1.7;
+    }
+    .no-account span { color: var(--cr); font-weight: 600; }
+ 
+    /* ── SUCCESS OVERLAY ── */
+    .success-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: var(--cr2);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px;
+      opacity: 0; pointer-events: none; transition: opacity 0.4s;
+    }
+    .success-overlay.show { opacity: 1; pointer-events: all; }
   </style>
 </head>
-
+ 
 <body>
-
-  <!-- Background shapes like image 1 -->
-  <div class="shape shape-1"></div>
-  <div class="shape shape-2"></div>
-  <div class="shape shape-3"></div>
-  <div class="shape shape-4"></div>
-
-  <!-- ════ LEFT — Welcome text ════ -->
-  <div class="left">
-
-    <!-- Logo -->
-    <div class="logo-mark">TX</div>
-
-    <!-- Big welcome -->
-    <div class="welcome-text">Welcome To Timetrix!</div>
-
-    <!-- Short line -->
-    <div class="divider-short"></div>
-
-    <!-- Description -->
-    <p class="left-sub">
-      An intelligent system designed to simplify timetable creation and deliver conflict-free schedules 
-      — in minutes, not hours.
-    </p>
-
-    <!-- Learn more button -->
-    <button class="learn-btn" onclick="alert('BCA Timetable System v1.0')">
-      Learn More
-    </button>
-
-  </div>
-
-  <!-- ════ RIGHT — Glass Sign In Card ════ -->
+ 
+  <!-- Background -->
+  <div class="bg-base"></div>
+  <div class="bg-dots"></div>
+  <div class="arc arc1"></div>
+  <div class="arc arc2"></div>
+  <div class="arc arc3"></div>
+  <div class="h-line h-top"></div>
+  <div class="h-line h-bot"></div>
+ 
+  <!-- Corners -->
+  <div class="corner c-tl">Timetrix</div>
+  <div class="corner c-tr" id="txClock">--:--:--</div>
+  <div class="corner c-bl">Intelligent Scheduling</div>
+ 
+  <!-- Card -->
   <div class="card">
-
-    <div class="card-title">Sign in</div>
-
-    <!-- Role selector -->
+ 
+    <div class="card-logo">
+      <div class="logo-box">Tx</div>
+      <div class="logo-name">Timetrix</div>
+    </div>
+ 
+    <div class="card-title">Sign in to continue</div>
+ 
     <div class="roles">
       <button class="role-btn active" id="role-hod"     onclick="setRole('hod')">👑 HOD</button>
       <button class="role-btn"        id="role-faculty" onclick="setRole('faculty')">👩‍🏫 Faculty</button>
       <button class="role-btn"        id="role-admin"   onclick="setRole('admin')">⚙️ Admin</button>
       <button class="role-btn"        id="role-student" onclick="setRole('student')">🎓 Student</button>
     </div>
-
-    <!-- Error -->
+ 
     <div class="error" id="error-msg">⚠ Invalid credentials. Please try again.</div>
-
-    <!-- User Name -->
-    <label class="field-label">User Name</label>
-    <div style="position:relative;">
-      <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:0.4;font-size:14px;">✉</span>
-      <input class="fi" type="email" id="email" placeholder="professor@college.edu">
+ 
+    <label class="field-label">Email Address</label>
+    <div class="input-wrap">
+      <span class="input-icon">✉</span>
+      <input class="fi" type="email" id="email" placeholder="you@college.edu">
     </div>
-
-    <!-- Password -->
+ 
     <label class="field-label">Password</label>
-    <div style="position:relative;">
-      <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:0.4;font-size:14px;">🔑</span>
+    <div class="input-wrap">
+      <span class="input-icon">🔑</span>
       <input class="fi" type="password" id="password" placeholder="••••••••••">
     </div>
-
-    <!-- Submit -->
-    <button class="btn-submit" id="login-btn" onclick="doLogin()">Submit</button>
-
-    <!-- No account note -->
+ 
+    <button class="btn-submit" id="login-btn" onclick="doLogin()">Sign In →</button>
+ 
     <div class="no-account">
-      Don't have an account?<br>
-      <span>Contact your HOD or Admin</span> to get credentials.<br>
-      📧 hod@bca.edu · admin@bca.edu
+      No account? <span>Contact your HOD or Admin</span><br>
+      📧 hod@college.edu · admin@college.edu
     </div>
-
+ 
   </div>
-
-  <!-- Success overlay -->
+ 
+  <!-- Success -->
   <div class="success-overlay" id="success-overlay">
     <div style="font-size:52px;">✓</div>
-    <div style="font-family:var(--serif);font-size:30px;font-weight:700;color:#fff;font-style:italic;">Welcome!</div>
+    <div style="font-family:var(--serif);font-size:30px;color:#fff;font-style:italic;">Welcome!</div>
     <div style="font-size:11px;color:rgba(255,255,255,0.6);font-family:var(--mono);letter-spacing:0.15em;text-transform:uppercase;">Redirecting...</div>
   </div>
-
+ 
 <script>
+  // Clock
+  function tick() {
+    const n = new Date();
+    const t = [n.getHours(), n.getMinutes(), n.getSeconds()]
+      .map(x => String(x).padStart(2,'0')).join(':');
+    const el = document.getElementById('txClock');
+    if (el) el.textContent = t;
+  }
+  tick(); setInterval(tick, 1000);
+ 
+  // Role
   let selectedRole = 'hod';
-
   function setRole(r) {
     selectedRole = r;
     ['hod','faculty','admin','student'].forEach(id => {
@@ -434,81 +403,66 @@
         .classList.toggle('active', id === r);
     });
   }
-
-  function fill(email, pass, role) {
-    document.getElementById('email').value = email;
-    document.getElementById('password').value = pass;
-    setRole(role);
-    document.getElementById('error-msg').classList.remove('show');
-  }
-
- async function doLogin() {
+ 
+  // Login
+  async function doLogin() {
     const email = document.getElementById('email').value.trim();
     const pass  = document.getElementById('password').value;
     const btn   = document.getElementById('login-btn');
     const err   = document.getElementById('error-msg');
-
+ 
     err.classList.remove('show');
-
+ 
     if (!email || !pass) {
       err.textContent = '⚠ Please enter both email and password.';
-      err.classList.add('show');
-      return;
+      err.classList.add('show'); return;
     }
-
+ 
     btn.classList.add('loading');
     btn.textContent = 'Signing In';
-
+ 
     try {
       const data = await Auth.login(email, pass);
-
+ 
       if (data.token) {
-        // Check role matches selected role
         if (data.user.role !== selectedRole) {
           btn.classList.remove('loading');
-          btn.textContent = 'Submit';
+          btn.textContent = 'Sign In →';
           err.textContent = `⚠ You are a ${data.user.role}, not a ${selectedRole}!`;
-          err.classList.add('show');
-          return;
+          err.classList.add('show'); return;
         }
-
-        // Save token + user
+ 
         localStorage.setItem('timetrix_token', data.token);
         sessionStorage.setItem('bca_user', JSON.stringify({
-          id:    data.user.id,
-          name:  data.user.name,
-          email: data.user.email,
-          role:  data.user.role
+          id: data.user.id, name: data.user.name,
+          email: data.user.email, role: data.user.role
         }));
-
-        // Show success
+ 
         document.getElementById('success-overlay').classList.add('show');
-
-        // Redirect
         setTimeout(() => {
           window.location.href = data.user.role === 'student'
-            ? 'timetable-class.html'
-            : 'dashboard.html';
+            ? 'timetable-class.html' : 'dashboard.html';
         }, 1800);
-
+ 
       } else {
         btn.classList.remove('loading');
-        btn.textContent = 'Submit';
+        btn.textContent = 'Sign In →';
         err.textContent = '⚠ ' + (data.message || 'Invalid credentials!');
         err.classList.add('show');
       }
-
+ 
     } catch (e) {
       btn.classList.remove('loading');
-      btn.textContent = 'Submit';
+      btn.textContent = 'Sign In →';
       err.textContent = '⚠ Server error! Make sure backend is running.';
       err.classList.add('show');
     }
   }
+ 
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });
 </script>
-
+ 
 </body>
 </html>

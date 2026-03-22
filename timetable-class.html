@@ -6,6 +6,7 @@
   <title>Timetrix — Timetable by Class</title>
   <link rel="stylesheet" href="css/output.css">
   <script src="js/api.js"></script>
+   <script src="js/auth-check.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -268,13 +269,8 @@
 
 <script>
 // ── AUTH ──────────────────────────────────────
-const session = sessionStorage.getItem('bca_user');
-if (!session) { window.location.href='index.html'; }
-else {
-  const u = JSON.parse(session);
-  document.getElementById('user-role').textContent  = u.role.toUpperCase();
-  document.getElementById('user-email').textContent = u.email;
-}
+const u = checkAuth(['hod','admin','faculty','student']);
+applyRoleUI(u);
 function logout() { sessionStorage.removeItem('bca_user'); window.location.href='index.html'; }
 
 // ── CONFIG ────────────────────────────────────
@@ -296,6 +292,9 @@ const CLASS_NAMES = {
 
 // ── LOAD GA RESULT ────────────────────────────
 const gaResult = JSON.parse(localStorage.getItem('bca_ga_result') || 'null');
+if (gaResult) {
+  gaResult.schedule = JSON.parse(localStorage.getItem('bca_ga_schedule') || 'null');
+}
 
 // ── SELECT CLASS ──────────────────────────────
 let currentClass = 'I_A';
@@ -322,6 +321,11 @@ document.querySelectorAll('.class-btn').forEach(b => {
 function renderTimetable(classId) {
   const container = document.getElementById('tt-container');
   const metaEl    = document.getElementById('tt-meta');
+  
+  // DEBUG
+  alert('gaResult: ' + (gaResult ? 'EXISTS' : 'NULL') + 
+        '\nSchedule: ' + (gaResult?.schedule ? 'EXISTS' : 'NULL') +
+        '\nI_A: ' + (gaResult?.schedule?.I_A ? 'EXISTS' : 'NULL'));
 
   // Update meta
   if (gaResult) {
@@ -417,7 +421,7 @@ function exportCSV() {
   if (!gaResult || !gaResult.schedule) {
     alert('No timetable generated yet! Run GA Engine first.');
     return;
-  }
+  } 
 
   const classSchedule = gaResult.schedule[currentClass];
   let csv = `${CLASS_NAMES[currentClass]}\nTime,${DAYS.join(',')}\n`;

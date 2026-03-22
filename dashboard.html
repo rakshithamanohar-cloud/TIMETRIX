@@ -6,6 +6,7 @@
   <title>Timetrix — Dashboard</title>
   <link rel="stylesheet" href="css/output.css">
   <script src="js/api.js"></script>
+  <script src="js/auth-check.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -318,77 +319,103 @@
 </main>
 
 <script>
-// ── AUTH ──────────────────────────────────────────
-const session = sessionStorage.getItem('bca_user');
-if (!session) { window.location.href='index.html'; }
-else {
-  const u = JSON.parse(session);
-  document.getElementById('user-role').textContent  = u.role.toUpperCase();
-  document.getElementById('user-email').textContent = u.email;
+// ── AUTH ──────────────────────────────────────
+const u = checkAuth(['hod','admin','faculty','student']);
+applyRoleUI(u);
 
-  // Greeting
-  const name = u.email.split('@')[0];
-  const hr   = new Date().getHours();
-  const tod  = hr < 12 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
-  document.getElementById('greeting-time').textContent = tod;
-  document.getElementById('greeting-name').textContent = `${name.charAt(0).toUpperCase()+name.slice(1)} 👋`;
+// Greeting
+const name = u.email.split('@')[0];
+const hr   = new Date().getHours();
+const tod  = hr < 12 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
+document.getElementById('greeting-time').textContent = tod;
+document.getElementById('greeting-name').textContent = `${name.charAt(0).toUpperCase()+name.slice(1)} 👋`;
 
-  // Hide admin actions for student/faculty
-  if (u.role === 'student' || u.role === 'faculty') {
-    document.querySelectorAll('.action-btn').forEach((b,i) => {
-      if (i < 2) b.style.display = 'none';
-    });
+// Hide admin actions for student/faculty
+if (u.role === 'student' || u.role === 'faculty') {
+  document.querySelectorAll('.action-btn').forEach((b,i) => {
+    if (i < 2) b.style.display = 'none';
+  });
+}
+
+// ── LOAD STATS FROM BACKEND ───────────────────
+async function loadStats() {
+  try {
+    const [roomsRes, labsRes, facultyRes] = await Promise.all([
+      Rooms.getAll(),
+      Labs.getAll(),
+      Faculty.getAll()
+    ]);
+
+    const rooms   = Array.isArray(roomsRes)   ? roomsRes   : [];
+    const labs    = Array.isArray(labsRes)    ? labsRes    : [];
+    const faculty = Array.isArray(facultyRes) ? facultyRes : [];
+
+    document.getElementById('stat-faculty').textContent = faculty.filter(f=>f.active==1||f.active===true).length;
+    document.getElementById('stat-rooms').textContent   = rooms.filter(r=>r.available==1||r.available===true).length;
+    document.getElementById('stat-labs').textContent    = labs.filter(l=>l.available==1||l.available===true).length;
+
+    // Status badges
+    setBadge('status-faculty', faculty.length>0?`${faculty.length} Added`:'Pending', faculty.length>0?'ok':'warn');
+    setBadge('status-rooms',   rooms.length>0?`${rooms.length} Added`:'Pending',     rooms.length>0?'ok':'warn');
+    setBadge('status-labs',    labs.length>0?`${labs.length} Added`:'Pending',       labs.length>0?'ok':'warn');
+
+    // Activity
+    const activities = [];
+    if (faculty.length > 0) activities.push({ text:`${faculty.length} faculty member${faculty.length>1?'s':''} added`, time:'Recent', dot:'green' });
+    if (rooms.length   > 0) activities.push({ text:`${rooms.length} classroom${rooms.length>1?'s':''} configured`, time:'Recent', dot:'green' });
+    if (labs.length    > 0) activities.push({ text:`${labs.length} lab${labs.length>1?'s':''} configured`, time:'Recent', dot:'green' });
+    if (activities.length === 0) activities.push({ text:'No activity yet — start by adding rooms and faculty', time:'Now', dot:'' });
+
+    document.getElementById('activity-list').innerHTML = activities.map(a => `
+      <div class="activity-item">
+        <div class="act-dot ${a.dot}"></div>
+        <div>
+          <div class="act-text">${a.text}</div>
+          <div class="act-time">${a.time}</div>
+        </div>
+      </div>`).join('');
+
+  } catch(e) {
+    console.log('Using localStorage fallback');
+    // Fallback to localStorage
+    const rooms   = JSON.parse(localStorage.getItem('bca_rooms')   || '[]');
+    const labs    = JSON.parse(localStorage.getItem('bca_labs')    || '[]');
+    const faculty = JSON.parse(localStorage.getItem('bca_faculty') || '[]');
+    document.getElementById('stat-faculty').textContent = faculty.filter(f=>f.active).length;
+    document.getElementById('stat-rooms').textContent   = rooms.filter(r=>r.available).length;
+    document.getElementById('stat-labs').textContent    = labs.filter(l=>l.available).length;
   }
 }
-function logout() { sessionStorage.removeItem('bca_user'); window.location.href='index.html'; }
 
-// ── LOAD STATS ────────────────────────────────────
-const rooms    = JSON.parse(localStorage.getItem('bca_rooms')     || '[]');
-const labs     = JSON.parse(localStorage.getItem('bca_labs')      || '[]');
-const faculty  = JSON.parse(localStorage.getItem('bca_faculty')   || '[]');
-const gaResult = JSON.parse(localStorage.getItem('bca_ga_result') || 'null');
-
-document.getElementById('stat-faculty').textContent = faculty.filter(f=>f.active).length;
-document.getElementById('stat-rooms').textContent   = rooms.filter(r=>r.available).length;
-document.getElementById('stat-labs').textContent    = labs.filter(l=>l.available).length;
-
-// ── STATUS BADGES ─────────────────────────────────
+// ── STATUS BADGES ─────────────────────────────
 function setBadge(id, text, type) {
   const el = document.getElementById(id);
   el.textContent = text;
   el.className = 'st-badge badge-' + type;
 }
 
-setBadge('status-ga',     gaResult ? `Done · ${gaResult.fitness}%` : 'Not Run',   gaResult ? 'ok' : 'warn');
-setBadge('status-tt',     gaResult ? 'Ready' : 'Empty',                            gaResult ? 'ok' : 'warn');
-setBadge('status-faculty', faculty.length > 0 ? `${faculty.length} Added` : 'Pending', faculty.length>0?'ok':'warn');
-setBadge('status-rooms',   rooms.length   > 0 ? `${rooms.length} Added`   : 'Pending', rooms.length>0?'ok':'warn');
-setBadge('status-labs',    labs.length    > 0 ? `${labs.length} Added`    : 'Pending', labs.length>0?'ok':'warn');
+// ── GA BANNER ─────────────────────────────────
+const gaResult = JSON.parse(localStorage.getItem('bca_ga_result') || 'null');
+setBadge('status-ga', gaResult?`Done · ${gaResult.fitness}%`:'Not Run', gaResult?'ok':'warn');
+setBadge('status-tt', gaResult?'Ready':'Empty', gaResult?'ok':'warn');
 
-// ── GA BANNER ─────────────────────────────────────
 if (gaResult) {
   document.getElementById('ga-banner-title').textContent = `Timetable generated · Fitness ${gaResult.fitness}%`;
   document.getElementById('ga-banner-sub').textContent   = `Last run: ${new Date(gaResult.generatedAt).toLocaleString()} · ${gaResult.conflicts} conflicts`;
   document.getElementById('ga-banner').style.background  = 'rgba(100,220,140,0.08)';
   document.getElementById('ga-banner').style.borderColor = 'rgba(100,220,140,0.20)';
+  document.getElementById('activity-list').innerHTML += `
+    <div class="activity-item">
+      <div class="act-dot green"></div>
+      <div>
+        <div class="act-text">GA Engine ran — fitness ${gaResult.fitness}%</div>
+        <div class="act-time">${new Date(gaResult.generatedAt).toLocaleString()}</div>
+      </div>
+    </div>`;
 }
 
-// ── ACTIVITY ──────────────────────────────────────
-const activities = [];
-if (faculty.length > 0) activities.push({ text:`${faculty.length} faculty member${faculty.length>1?'s':''} added`, time:'Recent', dot:'green' });
-if (rooms.length   > 0) activities.push({ text:`${rooms.length} classroom${rooms.length>1?'s':''} configured`, time:'Recent', dot:'green' });
-if (labs.length    > 0) activities.push({ text:`${labs.length} lab${labs.length>1?'s':''} configured`, time:'Recent', dot:'green' });
-if (gaResult)           activities.push({ text:`GA Engine ran — fitness ${gaResult.fitness}%`, time:new Date(gaResult.generatedAt).toLocaleString(), dot:'green' });
-if (activities.length === 0) activities.push({ text:'No activity yet — start by adding rooms and faculty', time:'Now', dot:'' });
-
-document.getElementById('activity-list').innerHTML = activities.map(a => `
-  <div class="activity-item">
-    <div class="act-dot ${a.dot}"></div>
-    <div>
-      <div class="act-text">${a.text}</div>
-      <div class="act-time">${a.time}</div>
-    </div>
-  </div>`).join('');
+// ── INIT ──────────────────────────────────────
+loadStats();
 </script>
 </body>
 </html>

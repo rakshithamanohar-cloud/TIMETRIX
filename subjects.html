@@ -6,6 +6,7 @@
   <title>Timetrix — Subjects & Curriculum</title>
   <link rel="stylesheet" href="css/output.css">
   <script src="js/api.js"></script>
+   <script src="js/auth-check.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -301,25 +302,14 @@
 
 <script>
 // ── AUTH ──────────────────────────────────────
-const session = sessionStorage.getItem('bca_user');
-if (!session) { window.location.href='index.html'; }
-else {
-  const u = JSON.parse(session);
-  document.getElementById('user-role').textContent  = u.role.toUpperCase();
-  document.getElementById('user-email').textContent = u.email;
-
-  // Only HOD and Admin can add subjects
-  if (u.role === 'faculty' || u.role === 'student') {
-    document.querySelector('.btn-primary').style.display = 'none';
-  }
-}
-function logout() { sessionStorage.removeItem('bca_user'); window.location.href='index.html'; }
+const u = checkAuth(['hod','admin']);
+applyRoleUI(u);
 
 // ── DATA ──────────────────────────────────────
-let subjects   = [];
+let subjects    = [];
 let facultyList = [];
-let editingId  = null;
-let currentTab = 'all';
+let editingId   = null;
+let currentTab  = 'all';
 
 const TYPE_ICONS = {
   theory:   '📖',
@@ -420,30 +410,28 @@ function populateFacultyDropdown() {
 // ── MODAL ─────────────────────────────────────
 function openModal(id = null) {
   editingId = id;
-
   if (id) {
     const s = subjects.find(s => s.id === id);
     document.getElementById('modal-title-text').textContent = 'Edit Subject';
-    document.getElementById('f-name').value    = s.name;
-    document.getElementById('f-code').value    = s.code    || '';
-    document.getElementById('f-year').value    = s.year;
-    document.getElementById('f-type').value    = s.type;
-    document.getElementById('f-periods').value = s.periods_per_week;
-    document.getElementById('f-roomtype').value= s.room_type;
-    document.getElementById('f-faculty').value = s.faculty_id || '';
+    document.getElementById('f-name').value     = s.name;
+    document.getElementById('f-code').value     = s.code || '';
+    document.getElementById('f-year').value     = s.year;
+    document.getElementById('f-type').value     = s.type;
+    document.getElementById('f-periods').value  = s.periods_per_week;
+    document.getElementById('f-roomtype').value = s.room_type;
+    document.getElementById('f-faculty').value  = s.faculty_id || '';
     toggleLangNote(s.type);
   } else {
     document.getElementById('modal-title-text').textContent = 'Add Subject';
-    document.getElementById('f-name').value    = '';
-    document.getElementById('f-code').value    = '';
-    document.getElementById('f-year').value    = '1';
-    document.getElementById('f-type').value    = 'theory';
-    document.getElementById('f-periods').value = '4';
-    document.getElementById('f-roomtype').value= 'classroom';
-    document.getElementById('f-faculty').value = '';
+    document.getElementById('f-name').value     = '';
+    document.getElementById('f-code').value     = '';
+    document.getElementById('f-year').value     = '1';
+    document.getElementById('f-type').value     = 'theory';
+    document.getElementById('f-periods').value  = '4';
+    document.getElementById('f-roomtype').value = 'classroom';
+    document.getElementById('f-faculty').value  = '';
     toggleLangNote('theory');
   }
-
   document.getElementById('subj-modal').classList.add('show');
 }
 
@@ -453,11 +441,10 @@ function closeModal() {
 
 function toggleLangNote(type) {
   document.getElementById('lang-note').style.display = type === 'language' ? '' : 'none';
-  // Auto set room type for lab/project
   if (type === 'lab' || type === 'project') {
     document.getElementById('f-roomtype').value = 'lab';
-    document.getElementById('f-periods').value  = type === 'lab' ? '3' : '3';
-  } else {
+    document.getElementById('f-periods').value  = '3';
+  } else if (type !== 'language') {
     document.getElementById('f-roomtype').value = 'classroom';
   }
 }
@@ -474,7 +461,6 @@ async function saveSubject() {
 
   if (!name) { alert('Subject name is required!'); return; }
 
-  // Language only for year 1 and 2
   if (type === 'language' && year === '3') {
     alert('Language subjects are only for I BCA and II BCA!');
     return;
@@ -483,7 +469,7 @@ async function saveSubject() {
   const data = {
     name, code, year, type,
     periods_per_week: parseInt(periods),
-    room_type: roomType,
+    room_type:  roomType,
     faculty_id: facultyId || null
   };
 

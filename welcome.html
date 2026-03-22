@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TimeTrix — Welcome</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --cr:    #a51c30;
+      --cr2:   #8b1526;
+      --bg:    #f8f4f4;
+      --dark:  #1a0608;
+      --muted: rgba(26,6,8,0.38);
+      --font:  'Outfit', sans-serif;
+      --serif: 'DM Serif Display', serif;
+      --mono:  'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* ── DOT GRID ── */
+    .tx-dots {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: radial-gradient(circle, rgba(165,28,48,0.16) 1.2px, transparent 1.2px);
+      background-size: 30px 30px;
+      animation: dotDrift 18s linear infinite;
+    }
+    @keyframes dotDrift {
+      from { background-position: 0 0; }
+      to   { background-position: 30px 30px; }
+    }
+
+    /* ── GLOW ── */
+    .tx-glow {
+      position: fixed;
+      width: 700px; height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(165,28,48,0.06) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none; z-index: 0;
+      animation: glowPulse 5s ease-in-out infinite;
+    }
+    @keyframes glowPulse {
+      0%,100% { transform: translate(-50%,-50%) scale(1);   opacity: 1; }
+      50%      { transform: translate(-50%,-50%) scale(1.1); opacity: 0.6; }
+    }
+
+    /* ── CORNER LABELS ── */
+    .tx-corner {
+      position: fixed;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: rgba(165,28,48,0.35);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      z-index: 10;
+    }
+    .tc-tl { top: 28px; left: 32px; }
+    .tc-tr { top: 28px; right: 32px; }
+    .tc-bl { bottom: 28px; left: 32px; }
+
+    /* ── PROGRESS BAR ── */
+    .tx-progress {
+      position: fixed;
+      bottom: 0; left: 0;
+      height: 2px;
+      background: var(--cr);
+      width: 0%;
+      z-index: 100;
+      opacity: 0;
+      transition: opacity 0.5s ease, width 0.1s linear;
+    }
+    .tx-progress.show { opacity: 1; }
+
+    /* ── WIPE OVERLAY ── */
+    .tx-wipe {
+      position: fixed; inset: 0;
+      background: var(--cr);
+      transform: translateY(100%);
+      z-index: 999;
+      transition: transform 0.7s cubic-bezier(0.76,0,0.24,1);
+    }
+    .tx-wipe.active { transform: translateY(0); }
+
+    /* ── MAIN WRAP ── */
+    .tx-wrap {
+      position: relative; z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 880px;
+      padding: 0 24px;
+    }
+
+    /* ── LOGO ── */
+    .tx-logo {
+      width: 52px; height: 52px;
+      background: var(--cr);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif);
+      font-size: 22px; color: #fff;
+      font-style: italic;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(165,28,48,0.28);
+      opacity: 0; transform: scale(0.7);
+      transition: all 0.6s cubic-bezier(0.16,1,0.3,1);
+    }
+    .tx-logo.show { opacity: 1; transform: scale(1); }
+
+    /* ── TITLE ── */
+    .tx-title {
+      font-family: var(--serif);
+      font-size: 92px;
+      line-height: 0.88;
+      text-align: center;
+      color: var(--dark);
+      letter-spacing: -0.01em;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s cubic-bezier(0.16,1,0.3,1);
+    }
+    .tx-title em { font-style: italic; color: var(--cr); }
+    .tx-title.show { opacity: 1; transform: translateY(0); }
+
+    /* ── TAGLINE ── */
+    .tx-tagline {
+      margin-top: 14px;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      text-align: center;
+      font-family: var(--mono);
+      opacity: 0; transform: translateY(14px);
+      transition: all 0.6s ease;
+    }
+    .tx-tagline.show { opacity: 1; transform: translateY(0); }
+
+    /* ── DIVIDER ── */
+    .tx-line {
+      width: 40px; height: 1px;
+      background: var(--cr);
+      margin: 22px auto;
+      opacity: 0; transform: scaleX(0);
+      transform-origin: center;
+      transition: all 0.5s ease;
+    }
+    .tx-line.show { opacity: 1; transform: scaleX(1); }
+
+    /* ── TIMETABLE ── */
+    .tx-table-wrap {
+      width: 100%;
+      opacity: 0; transform: translateY(24px);
+      transition: all 0.7s ease;
+    }
+    .tx-table-wrap.show { opacity: 1; transform: translateY(0); }
+
+    .tx-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 4px;
+    }
+
+    .tx-table th {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 10px 6px;
+      background: var(--dark);
+      color: #fff;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .tx-table th.th-time {
+      background: transparent;
+      color: rgba(165,28,48,0.35);
+    }
+
+    .tx-table td {
+      padding: 13px 6px;
+      border-radius: 8px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      border: 1.5px solid transparent;
+      background: transparent;
+      color: transparent;
+      transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+    }
+    .tx-table td.time-label {
+      font-size: 9px;
+      color: rgba(165,28,48,0.32) !important;
+      background: transparent !important;
+      border: none !important;
+    }
+
+    /* Cell flavours */
+    .cell-empty { background: rgba(165,28,48,0.04); border-color: rgba(165,28,48,0.08) !important; }
+    .cell-free  { background: rgba(165,28,48,0.03); border-color: rgba(165,28,48,0.06) !important; color: rgba(165,28,48,0.18) !important; }
+    .cell-soft  { background: rgba(165,28,48,0.08); border-color: rgba(165,28,48,0.15) !important; color: var(--cr) !important; }
+    .cell-mid   { background: rgba(165,28,48,0.14); border-color: rgba(165,28,48,0.26) !important; color: var(--cr) !important; font-weight: 500; }
+    .cell-bold  { background: var(--cr);             border-color: var(--cr) !important;             color: #fff !important; font-weight: 500; box-shadow: 0 4px 16px rgba(165,28,48,0.28); }
+    .cell-dark  { background: var(--dark);           border-color: var(--dark) !important;           color: #fff !important; font-weight: 500; }
+
+    /* ── PILLS ── */
+    .tx-pills {
+      display: flex; gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 6px;
+      opacity: 0; transform: translateY(14px);
+      transition: all 0.6s ease;
+    }
+    .tx-pills.show { opacity: 1; transform: translateY(0); }
+
+    .pill {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 18px;
+      background: #fff;
+      border: 1px solid rgba(165,28,48,0.13);
+      border-radius: 40px;
+      font-size: 11px; font-weight: 600;
+      color: var(--dark);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .pill-dot {
+      width: 6px; height: 6px;
+      background: var(--cr);
+      border-radius: 50%;
+    }
+
+    /* ── BUTTON ── */
+    .tx-btn {
+      margin-top: 26px;
+      padding: 15px 48px;
+      background: var(--cr);
+      color: #fff;
+      border: none;
+      border-radius: 60px;
+      font-family: var(--font);
+      font-size: 13px; font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      opacity: 0; transform: translateY(14px);
+      transition: opacity 0.6s ease, transform 0.6s ease, background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 8px 28px rgba(165,28,48,0.28);
+    }
+    .tx-btn.show { opacity: 1; transform: translateY(0); }
+    .tx-btn:hover { background: var(--cr2); box-shadow: 0 14px 40px rgba(165,28,48,0.4); transform: translateY(-2px) !important; }
+
+    /* ── SKIP ── */
+    .tx-skip {
+      position: fixed;
+      bottom: 22px; right: 32px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: rgba(165,28,48,0.28);
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      z-index: 20;
+      transition: color 0.2s;
+    }
+    .tx-skip:hover { color: var(--cr); }
+  </style>
+</head>
+
+<body>
+
+  <div class="tx-dots"></div>
+  <div class="tx-glow"></div>
+  <div class="tx-wipe" id="txWipe"></div>
+
+  <div class="tx-corner tc-tl">TimeTrix</div>
+  <div class="tx-corner tc-tr" id="txClock">--:--:--</div>
+  <div class="tx-corner tc-bl">Intelligent Scheduling</div>
+
+  <div class="tx-progress" id="txBar"></div>
+  <div class="tx-skip" onclick="goLogin()">skip →</div>
+
+  <div class="tx-wrap">
+
+    <div class="tx-logo" id="txLogo">Tx</div>
+
+    <div class="tx-title" id="txTitle">Time<em>trix</em></div>
+
+    <div class="tx-tagline" id="txTag">AI · Timetables · Minutes, Not Hours</div>
+
+    <div class="tx-line" id="txLine"></div>
+
+    <div class="tx-table-wrap" id="txTableWrap">
+      <table class="tx-table" id="txTable">
+        <thead>
+          <tr>
+            <th class="th-time"></th>
+            <th>Monday</th>
+            <th>Tuesday</th>
+            <th>Wednesday</th>
+            <th>Thursday</th>
+            <th>Friday</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="time-label">09:00</td>
+            <td data-class="cell-bold" data-text="DBMS"></td>
+            <td data-class="cell-soft" data-text="OS"></td>
+            <td data-class="cell-free" data-text="—"></td>
+            <td data-class="cell-mid"  data-text="AI Lab"></td>
+            <td data-class="cell-dark" data-text="Java"></td>
+          </tr>
+          <tr>
+            <td class="time-label">10:00</td>
+            <td data-class="cell-soft" data-text="Networks"></td>
+            <td data-class="cell-bold" data-text="Java"></td>
+            <td data-class="cell-mid"  data-text="DBMS"></td>
+            <td data-class="cell-free" data-text="—"></td>
+            <td data-class="cell-soft" data-text="OS"></td>
+          </tr>
+          <tr>
+            <td class="time-label">11:00</td>
+            <td data-class="cell-free" data-text="—"></td>
+            <td data-class="cell-mid"  data-text="AI Lab"></td>
+            <td data-class="cell-bold" data-text="Java"></td>
+            <td data-class="cell-soft" data-text="Networks"></td>
+            <td data-class="cell-mid"  data-text="DBMS"></td>
+          </tr>
+          <tr>
+            <td class="time-label">12:00</td>
+            <td data-class="cell-dark" data-text="AI Lab"></td>
+            <td data-class="cell-free" data-text="—"></td>
+            <td data-class="cell-soft" data-text="Networks"></td>
+            <td data-class="cell-bold" data-text="Java"></td>
+            <td data-class="cell-free" data-text="—"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tx-pills" id="txPills">
+      <div class="pill"><div class="pill-dot"></div>Zero Conflicts</div>
+      <div class="pill"><div class="pill-dot"></div>Instant Generation</div>
+      <div class="pill"><div class="pill-dot"></div>Smart Scheduling</div>
+    </div>
+
+    <button class="tx-btn" id="txBtn" onclick="goLogin()">Enter TimeTrix &rarr;</button>
+
+  </div>
+
+<script>
+  // Clock
+  function tick() {
+    const n = new Date();
+    const t = [n.getHours(), n.getMinutes(), n.getSeconds()]
+      .map(x => String(x).padStart(2,'0')).join(':');
+    const el = document.getElementById('txClock');
+    if (el) el.textContent = t;
+  }
+  tick(); setInterval(tick, 1000);
+
+  // Staggered reveals
+  [
+    { id: 'txLogo',      delay: 300  },
+    { id: 'txTitle',     delay: 900  },
+    { id: 'txTag',       delay: 1500 },
+    { id: 'txLine',      delay: 1900 },
+    { id: 'txTableWrap', delay: 2200 },
+    { id: 'txPills',     delay: 2600 },
+    { id: 'txBtn',       delay: 3300 },
+  ].forEach(r => setTimeout(() => {
+    const el = document.getElementById(r.id);
+    if (el) el.classList.add('show');
+  }, r.delay));
+
+  // Cell-by-cell animation
+  setTimeout(() => {
+    const cells = document.querySelectorAll('#txTable td[data-class]');
+    cells.forEach((cell, i) => {
+      setTimeout(() => {
+        cell.classList.add('cell-empty');
+        setTimeout(() => {
+          cell.classList.remove('cell-empty');
+          cell.classList.add(cell.dataset.class);
+          cell.textContent = cell.dataset.text;
+        }, 200);
+      }, i * 85);
+    });
+  }, 2300);
+
+  // Progress bar + auto redirect after 7s
+  const bar = document.getElementById('txBar');
+  setTimeout(() => {
+    bar.classList.add('show');
+    let prog = 0;
+    const total = 6500, step = 80;
+    const timer = setInterval(() => {
+      prog += (step / total) * 100;
+      bar.style.width = Math.min(prog, 100) + '%';
+      if (prog >= 100) { clearInterval(timer); goLogin(); }
+    }, step);
+  }, 3500);
+
+  // Exit wipe then redirect
+  function goLogin() {
+    document.getElementById('txWipe').classList.add('active');
+    setTimeout(() => { window.location.href = 'index.html'; }, 750);
+  }
+</script>
+
+</body>
+</html>
