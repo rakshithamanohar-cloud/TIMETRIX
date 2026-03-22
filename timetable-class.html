@@ -322,10 +322,7 @@ function renderTimetable(classId) {
   const container = document.getElementById('tt-container');
   const metaEl    = document.getElementById('tt-meta');
   
-  // DEBUG
-  alert('gaResult: ' + (gaResult ? 'EXISTS' : 'NULL') + 
-        '\nSchedule: ' + (gaResult?.schedule ? 'EXISTS' : 'NULL') +
-        '\nI_A: ' + (gaResult?.schedule?.I_A ? 'EXISTS' : 'NULL'));
+
 
   // Update meta
   if (gaResult) {

@@ -442,11 +442,12 @@ applyRoleUI(u);
 function logout() { sessionStorage.removeItem('bca_user'); window.location.href='index.html'; }
 
 // ── DATA ──────────────────────────────────────
-let rooms   = JSON.parse(localStorage.getItem('bca_rooms')   || '[]');
-let labs    = JSON.parse(localStorage.getItem('bca_labs')    || '[]');
-let faculty = JSON.parse(localStorage.getItem('bca_faculty') || '[]');
+let rooms      = [];
+let labs       = [];
+let faculty    = [];
+let allSubjects = [];
 
-// Load from backend
+// ── LOAD DATA ─────────────────────────────────
 async function loadData() {
   try {
     const [r, l, f, s] = await Promise.all([
@@ -456,23 +457,15 @@ async function loadData() {
       Subjects.getAll()
     ]);
 
-    if (Array.isArray(r)) rooms = r;
-    if (Array.isArray(l)) labs  = l;
+    if (Array.isArray(r)) rooms       = r;
+    if (Array.isArray(l)) labs        = l;
+    if (Array.isArray(f)) faculty     = f;
+    if (Array.isArray(s)) allSubjects = s;
 
-    if (Array.isArray(f) && Array.isArray(s)) {
-      faculty = f.map(fac => ({
-        ...fac,
-        subjects: s
-          .filter(sub => sub.faculty_id == fac.id)
-          .map(sub => sub.name)
-      }));
-    }
-
-    // Update preflight with real counts
     const avRooms   = rooms.filter(r => r.available==1||r.available===true).length;
     const avLabs    = labs.filter(l => l.available==1||l.available===true).length;
     const avFaculty = faculty.filter(f => f.active==1||f.active===true).length;
-    const subjects  = Array.isArray(s) ? s.length : 0;
+    const subjects  = allSubjects.length;
 
     const set = (subId, badgeId, sub, text, cls) => {
       document.getElementById(subId).textContent   = sub;
@@ -508,56 +501,6 @@ async function loadData() {
 
   } catch(e) {
     console.error('Load error:', e);
-    runPreflight();
-  }
-}
-
-// ── PRE-FLIGHT ────────────────────────────────
-async function runPreflight() {
-  try {
-    const [r, l, f, s] = await Promise.all([
-      Rooms.getAll(),
-      Labs.getAll(),
-      Faculty.getAll(),
-      Subjects.getAll()
-    ]);
-
-    if (Array.isArray(r)) rooms = r;
-    if (Array.isArray(l)) labs  = l;
-
-    if (Array.isArray(f) && Array.isArray(s)) {
-      faculty = f.map(fac => ({
-        ...fac,
-        subjects: s
-          .filter(sub => sub.faculty_id == fac.id)
-          .map(sub => sub.name)
-      }));
-    }
-
-    const avRooms   = rooms.filter(r => r.available==1||r.available===true).length;
-    const avLabs    = labs.filter(l => l.available==1||l.available===true).length;
-    const avFaculty = faculty.filter(f => f.active==1||f.active===true).length;
-    const subjects  = Array.isArray(s) ? s.length : 0;
-
-    const set = (subId, badgeId, sub, text, cls) => {
-      document.getElementById(subId).textContent   = sub;
-      document.getElementById(badgeId).textContent = text;
-      document.getElementById(badgeId).className   = 'check-badge ' + cls;
-    };
-
-    set('check-rooms-sub',    'check-rooms-badge',    `${avRooms} available`,    avRooms>=2?'Ready':avRooms===1?'Low':'Missing',    avRooms>=2?'cb-ok':avRooms===1?'cb-warn':'cb-err');
-    set('check-labs-sub',     'check-labs-badge',     `${avLabs} available`,     avLabs>=1?'Ready':'Missing',                       avLabs>=1?'cb-ok':'cb-err');
-    set('check-faculty-sub',  'check-faculty-badge',  `${avFaculty} active`,     avFaculty>=2?'Ready':avFaculty===1?'Low':'Missing', avFaculty>=2?'cb-ok':avFaculty===1?'cb-warn':'cb-err');
-    set('check-subjects-sub', 'check-subjects-badge', `${subjects} assignments`, subjects>=3?'Ready':subjects>=1?'Low':'None',       subjects>=3?'cb-ok':subjects>=1?'cb-warn':'cb-err');
-
-    const allReady   = avRooms>=2 && avLabs>=1 && avFaculty>=2 && subjects>=3;
-    const anyMissing = avRooms===0 || avFaculty===0;
-    const tag = document.getElementById('ready-tag');
-    tag.textContent = allReady ? '✓ Ready' : anyMissing ? '✗ Not Ready' : '⚠ Low Data';
-    tag.style.color = allReady ? 'var(--ok)' : anyMissing ? 'rgba(255,150,150,0.9)' : 'var(--warn)';
-
-  } catch(e) {
-    console.error('Preflight error:', e);
   }
 }
 
@@ -622,27 +565,20 @@ let gaRunning = false;
 
 async function runGA() {
   if (gaRunning) return;
-  
-  // Force reload data first!
-  await loadData();
-  if (gaRunning) return;
-const activeFaculty = faculty.filter(f => f.active == 1 || f.active === true);
-if (activeFaculty.length === 0) {
-  alert('Please add at least one active faculty member first!');
-  return;
-}
 
-// Check subjects
-const totalSubjects = activeFaculty.reduce((s,f) => s+(f.subjects||[]).length, 0);
-log(`Active faculty: ${activeFaculty.length} · Total subjects: ${totalSubjects}`, 'info');
-
-if (totalSubjects === 0) {
-  log('⚠ No subjects found! Loading from backend...', 'warn');
+  // Reload fresh data
   await loadData();
-  const retry = faculty.filter(f => f.active == 1 || f.active === true);
-  const retrySubjects = retry.reduce((s,f) => s+(f.subjects||[]).length, 0);
-  log(`After reload — subjects: ${retrySubjects}`, 'info');
-}
+
+  const activeFaculty = faculty.filter(f => f.active==1||f.active===true);
+  if (activeFaculty.length === 0) {
+    alert('Please add at least one active faculty member first!');
+    return;
+  }
+
+  if (allSubjects.length === 0) {
+    alert('No subjects found! Please add subjects first.');
+    return;
+  }
 
   gaRunning      = true;
   logStart       = Date.now();
@@ -666,13 +602,14 @@ if (totalSubjects === 0) {
 
   log(`Population: ${popSize} · Generations: ${maxGen} · Mutation: ${(mutRate*100).toFixed(0)}%`, 'info');
   log(`Faculty: ${activeFaculty.length} · Rooms: ${rooms.length} · Labs: ${labs.length}`, 'info');
-  log(`Building subject pool from faculty data…`, 'info');
+  log(`Subjects loaded: ${allSubjects.length} from database`, 'ok');
   log(`Initializing ${popSize} chromosomes…`, 'info');
 
   GA.run({
     faculty:        activeFaculty,
     rooms,
     labs,
+    allSubjects,
     populationSize: popSize,
     maxGenerations: maxGen,
     mutationRate:   mutRate,
@@ -706,7 +643,6 @@ if (totalSubjects === 0) {
       if (gen===50)  log(`Gen 50 — fitness: ${bestScore.toFixed(1)}% · ${totalV} violations`, 'info');
       if (gen===100) log(`Gen 100 — ${totalV} conflicts remaining`, 'info');
       if (gen===150) log(`Gen 150 — applying elitism to preserve best…`, 'info');
-      if (violations.facultyClash === 0 && gen > 10) log(`✓ Zero faculty clashes!`, 'ok');
 
       drawChart();
     },
@@ -724,36 +660,27 @@ if (totalSubjects === 0) {
       document.getElementById('progress-bar').style.width = '100%';
 
       log(`━━━ Complete at generation ${gen} ━━━`, 'info');
-      log(`Final fitness: ${score.toFixed(1)}% · ${totalV} violations`, perfect ? 'ok' : 'warn');
+      log(`Final fitness: ${score.toFixed(1)}% · ${totalV} violations`, perfect?'ok':'warn');
 
-      // Save to localStorage
-      const result = {
+      // Save metadata and schedule separately
+      const meta = {
         generatedAt: new Date().toISOString(),
         fitness:     parseFloat(score.toFixed(1)),
         generations: gen,
         conflicts:   totalV,
         violations,
-        ready:       true,
-        schedule
+        ready:       true
       };
-     // Save metadata and schedule SEPARATELY (schedule is too large!)
-const meta = {
-  generatedAt: new Date().toISOString(),
-  fitness:     parseFloat(score.toFixed(1)),
-  generations: gen,
-  conflicts:   totalV,
-  violations,
-  ready:       true
-};
-try {
-  localStorage.setItem('bca_ga_result',   JSON.stringify(meta));
-  localStorage.setItem('bca_ga_schedule', JSON.stringify(schedule));
-  log(`✓ Timetable saved to localStorage!`, 'ok');
-} catch(e) {
-  log(`⚠ localStorage full — database only`, 'warn');
-}
 
-      // Save to MySQL database
+      try {
+        localStorage.setItem('bca_ga_result',   JSON.stringify(meta));
+        localStorage.setItem('bca_ga_schedule', JSON.stringify(schedule));
+        log(`✓ Timetable saved to localStorage!`, 'ok');
+      } catch(e) {
+        log(`⚠ localStorage full — database only`, 'warn');
+      }
+
+      // Save to MySQL
       try {
         await Timetable.save({
           schedule,
@@ -769,7 +696,7 @@ try {
       // Result banner
       const banner = document.getElementById('result-banner');
       banner.classList.add('show');
-      banner.className = 'result-banner show ' + (perfect ? 'success' : 'warning');
+      banner.className = 'result-banner show ' + (perfect?'success':'warning');
       document.getElementById('rb-icon').textContent  = perfect ? '✅' : '⚠️';
       document.getElementById('rb-title').textContent = perfect
         ? 'Perfect Timetable Generated!'

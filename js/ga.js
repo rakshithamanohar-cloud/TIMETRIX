@@ -6,23 +6,20 @@
 const GA = {
 
   CLASSES: ['I_A','I_B','II_A','II_B','II_C','II_D','III_A','III_B','III_C'],
-
   DAYS: ['Mon','Tue','Wed','Thu','Fri','Sat'],
-
   SLOT_LABELS: [
     '8:00-9:00','9:00-10:00','10:00-11:00','11:00-12:00',
     'LUNCH',
     '1:00-2:00','2:00-3:00','3:00-4:00','4:00-5:00'
   ],
-
   WORK_SLOTS: [0,1,2,3,5,6,7,8],
   SAT_SLOTS:  [0,1,2,3],
   LAB_BLOCKS: [[0,1,2],[5,6,7],[6,7,8]],
 
   DEFAULT_SUBJECTS: {
-    1: ['C Programming','Data Structures','Mathematics','English','Kannada','Web Design Lab','Environmental Science'],
-    2: ['DBMS','Java Programming','Operating Systems','Software Engineering','Mathematics','DBMS Lab','Java Lab'],
-    3: ['Python','Artificial Intelligence','Computer Networks','Software Testing','Project Lab','CN Lab','Python Lab']
+    1: ['C Programming','Data Structures','English','Kannada','Web Design Lab','Environmental Science','OS Lab'],
+    2: ['Algorithm Design','Artificial Intel','Problem Solving','Web Programming','English','AI Lab','PS Lab'],
+    3: ['Machine Learning','Mobile App Dev','Software Testing','Emerging Cloud Dev','MERN Stack','Project Lab','ML Lab']
   },
 
   getYear(cls) {
@@ -42,29 +39,75 @@ const GA = {
   isLangSubject(name) {
     if (!name) return false;
     const n = name.toLowerCase();
-    return ['kannada','hindi','sanskrit','english'].some(l => n.includes(l));
+    return ['kannada','hindi','sanskrit'].some(l => n.includes(l));
   },
 
   rand(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
   },
 
+  // ── BUILD SUBJECT POOL FROM RAW SUBJECTS ─────
+  // allSubjects = array from DB with {id, name, year, type, faculty_id}
+  // faculty = array with {id, name, code}
+  buildSubjectPoolFromDB(allSubjects, faculty) {
+    const pool = { 1:[], 2:[], 3:[] };
+    const facultyMap = {};
+    faculty.forEach(f => { facultyMap[f.id] = f; });
+
+    allSubjects.forEach(sub => {
+      const year = parseInt(sub.year);
+      if (!year || year < 1 || year > 3) return;
+
+      const f = facultyMap[sub.faculty_id];
+      const entry = {
+        name:        sub.name,
+        isLab:       sub.type === 'lab' || sub.type === 'project',
+        isLang:      sub.type === 'language',
+        facultyId:   sub.faculty_id || 'default',
+        facultyName: f ? f.name : 'TBD',
+        facultyCode: f ? (f.code || f.name.split(' ').slice(-1)[0]) : 'TBD'
+      };
+
+      if (!pool[year].find(s => s.name === sub.name)) {
+        pool[year].push(entry);
+      }
+    });
+
+    // Fill with defaults if empty
+    [1,2,3].forEach(y => {
+      if (pool[y].length === 0) {
+        pool[y] = this.DEFAULT_SUBJECTS[y].map(name => ({
+          name,
+          isLab:       this.isLabSubject(name),
+          isLang:      this.isLangSubject(name),
+          facultyId:   'default',
+          facultyName: 'TBD',
+          facultyCode: 'TBD'
+        }));
+      }
+    });
+
+    return pool;
+  },
+
+  // ── FALLBACK: build from faculty.subjects strings ─
   buildSubjectPool(faculty) {
     const pool = { 1:[], 2:[], 3:[] };
 
     faculty.forEach(f => {
       (f.subjects || []).forEach(sub => {
+        const name = typeof sub === 'string' ? sub : sub.name;
+        if (!name) return;
+        const entry = {
+          name,
+          isLab:       this.isLabSubject(name),
+          isLang:      this.isLangSubject(name),
+          facultyId:   f.id,
+          facultyName: f.name,
+          facultyCode: f.code || f.name.split(' ').slice(-1)[0]
+        };
         [1,2,3].forEach(y => {
-          if (!pool[y].find(s => s.name === sub)) {
-            pool[y].push({
-              name:        sub,
-              isLab:       this.isLabSubject(sub),
-              isLang:      this.isLangSubject(sub),
-              facultyId:   f.id,
-              facultyName: f.name,
-              facultyCode: f.code || f.name.split(' ').slice(-1)[0]
-            });
-          }
+          if (!pool[y].find(s => s.name === name)) pool[y].push({...entry});
         });
       });
     });
@@ -87,34 +130,47 @@ const GA = {
 
   createChromosome(faculty, rooms, labs, subjectPool) {
     const schedule      = {};
-    const activeFaculty = faculty.filter(f => f.active !== false);
-    const availRooms    = rooms.filter(r => r.available !== false);
-    const availLabs     = labs.filter(l => l.available !== false);
+    const activeFaculty = faculty.filter(f => f.active == 1 || f.active === true);
+    const availRooms    = rooms.filter(r => r.available == 1 || r.available === true);
+    const availLabs     = labs.filter(l => l.available == 1 || l.available === true);
 
     this.CLASSES.forEach(cls => {
       schedule[cls] = {};
       const year           = this.getYear(cls);
-      const subjects       = subjectPool[year];
+      const subjects       = subjectPool[year] || [];
       const theorySubjects = subjects.filter(s => !s.isLab);
       const labSubjects    = subjects.filter(s => s.isLab);
+
+      // Use defaults if empty
+      const useTheory = theorySubjects.length > 0 ? theorySubjects :
+        this.DEFAULT_SUBJECTS[year].filter(n => !this.isLabSubject(n)).map(name => ({
+          name, isLab:false, isLang:this.isLangSubject(name),
+          facultyId:'default', facultyName:'TBD', facultyCode:'TBD'
+        }));
+
+      const useLabs = labSubjects.length > 0 ? labSubjects :
+        this.DEFAULT_SUBJECTS[year].filter(n => this.isLabSubject(n)).map(name => ({
+          name, isLab:true, isLang:false,
+          facultyId:'default', facultyName:'TBD', facultyCode:'TBD'
+        }));
 
       this.DAYS.forEach(day => {
         schedule[cls][day] = {};
         const slots = this.getSlots(day);
 
         let labSlots = [];
-        if (day !== 'Sat' && labSubjects.length > 0 && Math.random() < 0.35) {
+        if (day !== 'Sat' && useLabs.length > 0 && Math.random() < 0.35) {
           labSlots = this.rand(this.LAB_BLOCKS);
         }
 
         slots.forEach(slot => {
           const isLabSlot = labSlots.includes(slot);
 
-          if (isLabSlot && labSubjects.length > 0) {
-            const subj = this.rand(labSubjects);
+          if (isLabSlot && useLabs.length > 0) {
+            const subj = this.rand(useLabs);
             const lab  = availLabs.length > 0 ? this.rand(availLabs) : null;
-            const f    = activeFaculty.find(f => f.id === subj.facultyId) ||
-                         (activeFaculty.length > 0 ? this.rand(activeFaculty) : null);
+            const f    = activeFaculty.find(f => f.id == subj.facultyId) ||
+                        (activeFaculty.length > 0 ? this.rand(activeFaculty) : null);
 
             schedule[cls][day][slot] = {
               subject:     subj.name,
@@ -126,10 +182,10 @@ const GA = {
               batch:       Math.random() < 0.5 ? 'B1' : 'B2'
             };
 
-          } else if (theorySubjects.length > 0) {
-            const subj = this.rand(theorySubjects);
-            const f    = activeFaculty.find(f => f.id === subj.facultyId) ||
-                         (activeFaculty.length > 0 ? this.rand(activeFaculty) : null);
+          } else if (useTheory.length > 0) {
+            const subj = this.rand(useTheory);
+            const f    = activeFaculty.find(f => f.id == subj.facultyId) ||
+                        (activeFaculty.length > 0 ? this.rand(activeFaculty) : null);
             const room = availRooms.length > 0 ? this.rand(availRooms) : null;
 
             schedule[cls][day][slot] = {
@@ -158,41 +214,32 @@ const GA = {
       unbalanced:    0
     };
 
-    // 1. Faculty double-booked
     this.DAYS.forEach(day => {
       this.getSlots(day).forEach(slot => {
         const seen = {};
         this.CLASSES.forEach(cls => {
           const g = schedule[cls]?.[day]?.[slot];
           if (g?.facultyId && g.facultyId !== 'tbd' && g.facultyId !== 'default') {
-            if (seen[g.facultyId]) {
-              penalty += 25;
-              violations.facultyClash++;
-            }
+            if (seen[g.facultyId]) { penalty += 25; violations.facultyClash++; }
             seen[g.facultyId] = true;
           }
         });
       });
     });
 
-    // 2. Same subject more than once per class per day
     this.CLASSES.forEach(cls => {
       this.DAYS.forEach(day => {
         const seen = {};
         this.getSlots(day).forEach(slot => {
           const g = schedule[cls]?.[day]?.[slot];
           if (g?.subject) {
-            if (seen[g.subject]) {
-              penalty += 15;
-              violations.subjectRepeat++;
-            }
+            if (seen[g.subject]) { penalty += 15; violations.subjectRepeat++; }
             seen[g.subject] = true;
           }
         });
       });
     });
 
-    // 3. More than 2 consecutive same subject
     this.CLASSES.forEach(cls => {
       this.DAYS.forEach(day => {
         const slots = this.getSlots(day);
@@ -203,33 +250,26 @@ const GA = {
           if (prev?.subject && curr?.subject && prev.subject === curr.subject) {
             count++;
             if (count > 2) { penalty += 10; violations.consecutive++; }
-          } else {
-            count = 1;
-          }
+          } else { count = 1; }
         }
       });
     });
 
-    // 4. Blocked lab slots used by BCA
     const sharedLabs = (labs || []).filter(l => l.labtype === 'shared' && l.blockedSlots?.length > 0);
     sharedLabs.forEach(lab => {
       (lab.blockedSlots || []).forEach(key => {
-        const parts    = key.split('_');
-        const day      = parts[0];
-        const slotLabel= parts.slice(1).join('_');
-        const slotIndex= this.SLOT_LABELS.indexOf(slotLabel);
+        const parts     = key.split('_');
+        const day       = parts[0];
+        const slotLabel = parts.slice(1).join('_');
+        const slotIndex = this.SLOT_LABELS.indexOf(slotLabel);
         if (slotIndex < 0) return;
         this.CLASSES.forEach(cls => {
           const g = schedule[cls]?.[day]?.[slotIndex];
-          if (g?.room === lab.name) {
-            penalty += 20;
-            violations.blockedSlot++;
-          }
+          if (g?.room === lab.name) { penalty += 20; violations.blockedSlot++; }
         });
       });
     });
 
-    // 5. Subject appearing 5+ days (unbalanced)
     this.CLASSES.forEach(cls => {
       const subjectDays = {};
       this.DAYS.forEach(day => {
@@ -270,18 +310,18 @@ const GA = {
   },
 
   mutate(schedule, faculty, rooms, labs, subjectPool, rate) {
-    const activeFaculty = faculty.filter(f => f.active !== false);
-    const availRooms    = rooms.filter(r => r.available !== false);
+    const activeFaculty = faculty.filter(f => f.active == 1 || f.active === true);
+    const availRooms    = rooms.filter(r => r.available == 1 || r.available === true);
 
     this.CLASSES.forEach(cls => {
       const year           = this.getYear(cls);
-      const theorySubjects = subjectPool[year].filter(s => !s.isLab);
+      const theorySubjects = (subjectPool[year] || []).filter(s => !s.isLab);
 
       this.DAYS.forEach(day => {
         this.getSlots(day).forEach(slot => {
           if (Math.random() < rate && theorySubjects.length > 0 && activeFaculty.length > 0) {
             const subj = this.rand(theorySubjects);
-            const f    = activeFaculty.find(f => f.id === subj.facultyId) || this.rand(activeFaculty);
+            const f    = activeFaculty.find(f => f.id == subj.facultyId) || this.rand(activeFaculty);
             const room = availRooms.length > 0 ? this.rand(availRooms) : null;
             schedule[cls][day][slot] = {
               subject:     subj.name,
@@ -298,12 +338,22 @@ const GA = {
     return schedule;
   },
 
-  run({ faculty, rooms, labs, populationSize=50, maxGenerations=200,
+  run({ faculty, rooms, labs, allSubjects, populationSize=50, maxGenerations=200,
         mutationRate=0.05, elitismPct=0.10, targetFitness=95,
         onGeneration=()=>{}, onComplete=()=>{} }) {
 
-    const subjectPool = this.buildSubjectPool(faculty);
-    let population    = Array.from({ length: populationSize }, () =>
+    // Use DB subjects if available, otherwise fall back
+    const subjectPool = (allSubjects && allSubjects.length > 0)
+      ? this.buildSubjectPoolFromDB(allSubjects, faculty)
+      : this.buildSubjectPool(faculty);
+
+    console.log('Subject pool:', {
+      year1: subjectPool[1].length,
+      year2: subjectPool[2].length,
+      year3: subjectPool[3].length
+    });
+
+    let population = Array.from({ length: populationSize }, () =>
       this.createChromosome(faculty, rooms, labs, subjectPool)
     );
 
@@ -312,7 +362,6 @@ const GA = {
 
     const step = () => {
       gen++;
-
       const evaluated = population.map(schedule => {
         const { score, penalty, violations } = this.fitness(schedule, labs);
         return { schedule, score, penalty, violations };
