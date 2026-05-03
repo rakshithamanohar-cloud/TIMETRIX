@@ -22,7 +22,7 @@ function checkAuth(allowedRoles = []) {
       return null;
     }
     if (user.role === 'faculty') {
-      window.location.href = 'timetable-faculty.html';
+      window.location.href = 'faculty-timetable.html';
       return null;
     }
   }

@@ -3,466 +3,263 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TimeTrix — Login</title>
+  <title>Timetrix — Sign In</title>
   <link rel="stylesheet" href="css/output.css">
   <script src="js/api.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
- 
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --cr:    #a51c30;
-      --cr2:   #8b1526;
-      --crL:   #e05050;
-      --dark:  #1a0608;
+      --red:   #a51c30;
+      --red2:  #8b1526;
+      --redL:  #c0374f;
       --font:  'Outfit', sans-serif;
-      --serif: 'DM Serif Display', serif;
+      --serif: 'Cormorant Garamond', serif;
       --mono:  'JetBrains Mono', monospace;
     }
- 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; }
- 
-    body {
-      font-family: var(--font);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
- 
-    /* ── WARM CRIMSON BACKGROUND ── */
-    .bg-base {
-      position: fixed; inset: 0; z-index: 0;
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html, body { height:100%; overflow:hidden; }
+    body { font-family:var(--font); min-height:100vh; display:flex; align-items:center; justify-content:center; position:relative; }
+
+    /* ── BACKGROUND ── */
+    .bg {
+      position:fixed; inset:0; z-index:0;
       background:
         radial-gradient(ellipse at 0% 50%,   rgba(165,28,48,0.9)  0%, transparent 55%),
-        radial-gradient(ellipse at 100% 10%, rgba(120,10,28,0.85) 0%, transparent 50%),
-        radial-gradient(ellipse at 60% 100%, rgba(180,40,60,0.6)  0%, transparent 45%),
-        radial-gradient(ellipse at 50% 50%,  rgba(100,15,25,0.95) 0%, transparent 80%),
-        #5a0e1a;
-      animation: bgBreath 7s ease-in-out infinite alternate;
+        radial-gradient(ellipse at 100% 10%, rgba(110,8,24,0.85)  0%, transparent 50%),
+        radial-gradient(ellipse at 60% 100%, rgba(180,40,60,0.55) 0%, transparent 45%),
+        #4a0a14;
     }
-    @keyframes bgBreath {
-      from { filter: brightness(1); }
-      to   { filter: brightness(1.1); }
+
+    /* subtle grid */
+    .bg-grid {
+      position:fixed; inset:0; z-index:1; pointer-events:none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size:48px 48px;
     }
- 
-    /* ── DOT GRID ── */
-    .bg-dots {
-      position: fixed; inset: 0; z-index: 1; pointer-events: none;
-      background-image: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-      background-size: 28px 28px;
-      animation: dotDrift 20s linear infinite;
+
+    /* rotating rings */
+    .ring {
+      position:fixed; border-radius:50%;
+      top:50%; left:50%;
+      pointer-events:none; z-index:1;
     }
-    @keyframes dotDrift {
-      from { background-position: 0 0; }
-      to   { background-position: 28px 28px; }
-    }
- 
-    /* ── ROTATING ARCS ── */
-    .arc {
-      position: fixed; border-radius: 50%;
-      top: 50%; left: 50%;
-      pointer-events: none; z-index: 1;
-      animation: arcSpin linear infinite;
-    }
-    .arc1 {
-      width: 420px; height: 420px;
-      border: 1px solid rgba(255,255,255,0.12);
-      transform: translate(-50%,-50%);
-      animation-duration: 30s;
-    }
-    .arc2 {
-      width: 620px; height: 620px;
-      border: 1px dashed rgba(255,255,255,0.07);
-      transform: translate(-50%,-50%);
-      animation-duration: 50s;
-      animation-direction: reverse;
-    }
-    .arc3 {
-      width: 820px; height: 820px;
-      border: 1px solid rgba(255,255,255,0.04);
-      transform: translate(-50%,-50%);
-      animation-duration: 70s;
-    }
-    .arc1::before {
-      content: ''; position: absolute;
-      width: 6px; height: 6px;
-      background: rgba(255,200,200,0.9);
-      border-radius: 50%;
-      top: -3px; left: 50%;
-      transform: translateX(-50%);
-      box-shadow: 0 0 10px rgba(255,150,150,0.5);
-    }
-    .arc2::after {
-      content: ''; position: absolute;
-      width: 4px; height: 4px;
-      background: rgba(255,200,200,0.45);
-      border-radius: 50%;
-      bottom: -2px; right: 25%;
-    }
-    @keyframes arcSpin {
-      from { transform: translate(-50%,-50%) rotate(0deg); }
-      to   { transform: translate(-50%,-50%) rotate(360deg); }
-    }
- 
-    /* ── HORIZONTAL LINES ── */
-    .h-line {
-      position: fixed; left: 5%; right: 5%;
-      height: 1px; z-index: 2; pointer-events: none;
-      background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
-    }
-    .h-top { top: 44px; }
-    .h-bot { bottom: 44px; }
- 
-    /* ── CORNER LABELS ── */
-    .corner {
-      position: fixed; z-index: 10;
-      font-family: var(--mono);
-      font-size: 10px;
-      color: rgba(255,255,255,0.25);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-    .c-tl { top: 24px; left: 28px; }
-    .c-tr { top: 24px; right: 28px; }
-    .c-bl { bottom: 24px; left: 28px; }
- 
-    /* ── WHITE CARD ── */
+    .ring1 { width:440px;height:440px;border:1px solid rgba(255,255,255,0.09);transform:translate(-50%,-50%);animation:spin 35s linear infinite; }
+    .ring2 { width:660px;height:660px;border:1px dashed rgba(255,255,255,0.05);transform:translate(-50%,-50%);animation:spin 55s linear infinite reverse; }
+    .ring3 { width:880px;height:880px;border:1px solid rgba(255,255,255,0.03);transform:translate(-50%,-50%);animation:spin 75s linear infinite; }
+    .ring1::before { content:'';position:absolute;width:7px;height:7px;background:rgba(255,180,180,0.85);border-radius:50%;top:-3.5px;left:50%;transform:translateX(-50%);box-shadow:0 0 12px rgba(255,140,140,0.5); }
+    @keyframes spin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+
+    /* corner labels */
+    .corner { position:fixed;z-index:10;font-family:var(--mono);font-size:9px;color:rgba(255,255,255,0.22);letter-spacing:0.22em;text-transform:uppercase; }
+    .c-tl { top:22px;left:26px; }
+    .c-tr { top:22px;right:26px; }
+    .c-bl { bottom:22px;left:26px; }
+
+    /* h-rules */
+    .h-rule { position:fixed;left:5%;right:5%;height:1px;z-index:2;pointer-events:none;background:linear-gradient(to right,transparent,rgba(255,255,255,0.12),transparent); }
+    .h-top { top:44px; } .h-bot { bottom:44px; }
+
+    /* ── LOGIN CARD ── */
     .card {
-      position: relative; z-index: 10;
-      width: 100%;
-      max-width: 440px;
-      background: rgba(248,244,242,0.96);
-      backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
-      border: 1px solid rgba(255,255,255,0.9);
-      border-radius: 22px;
-      padding: 48px 42px;
-      margin: 0 16px;
-      box-shadow: 0 28px 70px rgba(60,5,12,0.45), 0 4px 24px rgba(0,0,0,0.15);
-      animation: fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) both;
+      position:relative; z-index:10;
+      width:100%; max-width:420px;
+      background:rgba(247,244,242,0.97);
+      border:1px solid rgba(255,255,255,0.92);
+      border-radius:20px;
+      padding:44px 40px;
+      margin:0 16px;
+      box-shadow:0 32px 80px rgba(50,4,12,0.5), 0 4px 24px rgba(0,0,0,0.12);
+      animation:fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both;
     }
-    .card::before {
-      content: '';
-      position: absolute; inset: 0;
-      border-radius: 22px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, transparent 60%);
-      pointer-events: none;
-    }
-    @keyframes fadeUp {
-      from { transform: translateY(30px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
- 
+    @keyframes fadeUp { from{transform:translateY(28px);opacity:0} to{transform:translateY(0);opacity:1} }
+
     /* ── LOGO ── */
-    .card-logo {
-      display: flex; align-items: center; justify-content: center;
-      gap: 10px; margin-bottom: 8px;
-    }
-    .logo-box {
-      width: 40px; height: 40px;
-      background: var(--cr);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--serif);
-      font-style: italic; font-size: 19px; color: #fff;
-      box-shadow: 0 4px 16px rgba(165,28,48,0.4);
-    }
-    .logo-name {
-      font-family: var(--serif);
-      font-size: 24px; font-style: italic;
-      color: #1a0608;
-      font-weight: 400;
-    }
-    .card-title {
-      font-family: var(--mono);
-      font-size: 9px;
-      color: rgba(26,6,8,0.55);
-      text-align: center;
-      margin-bottom: 28px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-    }
- 
-    /* ── ROLE BUTTONS ── */
-    .roles { display: flex; gap: 6px; margin-bottom: 26px; }
-    .role-btn {
-      flex: 1; padding: 9px 4px;
-      background: rgba(165,28,48,0.05);
-      border: 1px solid rgba(165,28,48,0.15);
-      border-radius: 8px;
-      color: rgba(26,6,8,0.6);
-      font-size: 10px; font-weight: 600;
-      font-family: var(--mono);
-      letter-spacing: 0.06em; text-transform: uppercase;
-      cursor: pointer; transition: all 0.2s; text-align: center;
-    }
-    .role-btn.active {
-      background: rgba(165,28,48,0.12);
-      border-color: rgba(165,28,48,0.45);
-      color: var(--cr);
-    }
-    .role-btn:hover:not(.active) {
-      background: rgba(165,28,48,0.08);
-      color: var(--dark);
-    }
- 
-    /* ── FIELD LABEL ── */
-    .field-label {
-      display: block;
-      font-size: 13px; font-weight: 600;
-      color: #1a0608;
-      margin-bottom: 7px;
-      font-family: var(--font);
-      letter-spacing: 0.02em;
-    }
- 
-    /* ── WHITE INPUTS ── */
-    .input-wrap { position: relative; }
-    .input-icon {
-      position: absolute;
-      left: 14px; top: 50%;
-      transform: translateY(-50%);
-      font-size: 14px;
-      color: rgba(165,28,48,0.4);
-      pointer-events: none;
-    }
-    .fi {
-      width: 100%;
-      padding: 14px 14px 14px 44px;
-      background: #ffffff;
-      border: 1.5px solid rgba(165,28,48,0.18);
-      border-radius: 10px;
-      color: #1a0608;
-      font-size: 14px;
-      font-family: var(--font);
-      font-weight: 500;
-      outline: none;
-      transition: all 0.2s;
-      margin-bottom: 18px;
-    }
-    .fi:focus {
-      border-color: rgba(165,28,48,0.55);
-      box-shadow: 0 0 0 3px rgba(165,28,48,0.1);
-    }
-    .fi::placeholder {
-      color: rgba(26,6,8,0.4);
-      font-size: 13px;
-      font-weight: 400;
-    }
- 
+    .logo-row { display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px; }
+    .logo-box { width:40px;height:40px;background:var(--red);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:18px;font-weight:700;color:#fff;box-shadow:0 4px 16px rgba(165,28,48,0.4); }
+    .logo-text { font-family:var(--serif);font-size:26px;font-weight:600;font-style:italic;color:#1a0608; }
+    .card-sub { text-align:center;font-size:9px;font-family:var(--mono);letter-spacing:0.24em;text-transform:uppercase;color:rgba(26,6,8,0.4);margin-bottom:28px; }
+
+    /* ── ROLE PILLS ── */
+    .roles { display:flex;gap:5px;margin-bottom:24px;background:rgba(165,28,48,0.05);border:1px solid rgba(165,28,48,0.12);border-radius:10px;padding:4px; }
+    .role-btn { flex:1;padding:8px 4px;background:transparent;border:none;border-radius:7px;color:rgba(26,6,8,0.5);font-size:10px;font-weight:600;font-family:var(--mono);letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;text-align:center; }
+    .role-btn.active { background:#fff;color:var(--red);box-shadow:0 1px 6px rgba(165,28,48,0.18); }
+    .role-btn:hover:not(.active) { color:rgba(26,6,8,0.75); }
+
+    /* ── INPUTS ── */
+    .field { margin-bottom:16px; }
+    .field-label { display:block;font-size:12px;font-weight:600;color:#1a0608;margin-bottom:6px;letter-spacing:0.01em; }
+    .input-wrap { position:relative; }
+    .input-icon { position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:rgba(165,28,48,0.4);pointer-events:none; }
+    .fi { width:100%;padding:13px 13px 13px 42px;background:#fff;border:1.5px solid rgba(165,28,48,0.16);border-radius:10px;color:#1a0608;font-size:14px;font-family:var(--font);font-weight:500;outline:none;transition:all 0.18s; }
+    .fi:focus { border-color:rgba(165,28,48,0.5);box-shadow:0 0 0 3px rgba(165,28,48,0.08); }
+    .fi::placeholder { color:rgba(26,6,8,0.35);font-size:13px;font-weight:400; }
+
     /* ── ERROR ── */
-    .error {
-      display: none;
-      background: rgba(165,28,48,0.08);
-      border: 1px solid rgba(165,28,48,0.25);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 12px; color: var(--cr);
-      font-family: var(--mono);
-      margin-bottom: 14px;
-      animation: shake 0.4s ease;
-    }
-    .error.show { display: block; }
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      25%      { transform: translateX(-6px); }
-      75%      { transform: translateX(6px); }
-    }
- 
-    /* ── SUBMIT BUTTON ── */
-    .btn-submit {
-      width: 100%; padding: 15px;
-      background: linear-gradient(135deg, var(--crL), var(--cr));
-      color: #fff;
-      border: none; border-radius: 10px;
-      font-size: 14px; font-weight: 700;
-      font-family: var(--font);
-      letter-spacing: 0.1em;
-      cursor: pointer; transition: all 0.2s;
-      box-shadow: 0 8px 28px rgba(165,28,48,0.4);
-      margin-top: 2px;
-    }
-    .btn-submit:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 36px rgba(165,28,48,0.55);
-    }
-    .btn-submit.loading { opacity: 0.7; pointer-events: none; }
-    .btn-submit.loading::after {
-      content: '';
-      display: inline-block; width: 13px; height: 13px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff; border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin-left: 10px; vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
- 
-    /* ── NO ACCOUNT ── */
-    .no-account {
-      text-align: center; margin-top: 18px;
-      font-size: 11px; color: rgba(26,6,8,0.45);
-      font-family: var(--mono); line-height: 1.7;
-    }
-    .no-account span { color: var(--cr); font-weight: 600; }
- 
-    /* ── SUCCESS OVERLAY ── */
-    .success-overlay {
-      position: fixed; inset: 0; z-index: 999;
-      background: var(--cr2);
-      display: flex; align-items: center; justify-content: center;
-      flex-direction: column; gap: 14px;
-      opacity: 0; pointer-events: none; transition: opacity 0.4s;
-    }
-    .success-overlay.show { opacity: 1; pointer-events: all; }
+    .error { display:none;background:rgba(165,28,48,0.07);border:1px solid rgba(165,28,48,0.22);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--red);font-family:var(--mono);margin-bottom:14px; }
+    .error.show { display:block;animation:shake 0.35s ease; }
+    @keyframes shake { 0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)} }
+
+    /* ── SUBMIT ── */
+    .btn-submit { width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;font-family:var(--font);letter-spacing:0.06em;cursor:pointer;transition:all 0.18s;box-shadow:0 6px 24px rgba(165,28,48,0.35);display:flex;align-items:center;justify-content:center;gap:8px; }
+    .btn-submit:hover { background:var(--red2);transform:translateY(-1px);box-shadow:0 8px 30px rgba(165,28,48,0.45); }
+    .btn-submit:disabled { opacity:0.6;cursor:not-allowed;transform:none; }
+    .spinner { width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin2 0.7s linear infinite;display:none; }
+    @keyframes spin2 { to{transform:rotate(360deg)} }
+
+    /* ── FOOTER NOTE ── */
+    .card-footer { text-align:center;margin-top:20px;font-size:11px;color:rgba(26,6,8,0.4);font-family:var(--mono);line-height:1.7; }
+    .card-footer span { color:var(--red);font-weight:600; }
+
+    /* ── DIVIDER ── */
+    .divider { display:flex;align-items:center;gap:10px;margin:18px 0; }
+    .divider-line { flex:1;height:1px;background:rgba(165,28,48,0.1); }
+    .divider-txt { font-size:9px;font-family:var(--mono);letter-spacing:0.15em;text-transform:uppercase;color:rgba(26,6,8,0.3); }
+
+    /* ── SUCCESS ── */
+    .success-overlay { position:fixed;inset:0;z-index:999;background:var(--red2);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;opacity:0;pointer-events:none;transition:opacity 0.4s; }
+    .success-overlay.show { opacity:1;pointer-events:all; }
+    .success-check { font-size:56px;color:#fff; }
+    .success-title { font-family:var(--serif);font-size:32px;font-style:italic;color:#fff; }
+    .success-sub { font-size:10px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.5); }
   </style>
 </head>
- 
 <body>
- 
-  <!-- Background -->
-  <div class="bg-base"></div>
-  <div class="bg-dots"></div>
-  <div class="arc arc1"></div>
-  <div class="arc arc2"></div>
-  <div class="arc arc3"></div>
-  <div class="h-line h-top"></div>
-  <div class="h-line h-bot"></div>
- 
-  <!-- Corners -->
-  <div class="corner c-tl">Timetrix</div>
-  <div class="corner c-tr" id="txClock">--:--:--</div>
-  <div class="corner c-bl">Intelligent Scheduling</div>
- 
-  <!-- Card -->
-  <div class="card">
- 
-    <div class="card-logo">
-      <div class="logo-box">Tx</div>
-      <div class="logo-name">Timetrix</div>
-    </div>
- 
-    <div class="card-title">Sign in to continue</div>
- 
-    <div class="roles">
-      <button class="role-btn active" id="role-hod"     onclick="setRole('hod')">👑 HOD</button>
-      <button class="role-btn"        id="role-faculty" onclick="setRole('faculty')">👩‍🏫 Faculty</button>
-      <button class="role-btn"        id="role-admin"   onclick="setRole('admin')">⚙️ Admin</button>
-      <button class="role-btn"        id="role-student" onclick="setRole('student')">🎓 Student</button>
-    </div>
- 
-    <div class="error" id="error-msg">⚠ Invalid credentials. Please try again.</div>
- 
+
+<div class="bg"></div>
+<div class="bg-grid"></div>
+<div class="ring ring1"></div>
+<div class="ring ring2"></div>
+<div class="ring ring3"></div>
+<div class="h-rule h-top"></div>
+<div class="h-rule h-bot"></div>
+<div class="corner c-tl">Timetrix</div>
+<div class="corner c-tr" id="clock">--:--:--</div>
+<div class="corner c-bl">Intelligent Scheduling</div>
+
+<!-- ════ CARD ════ -->
+<div class="card">
+
+  <div class="logo-row">
+    <div class="logo-box">TX</div>
+    <div class="logo-text">Timetrix</div>
+  </div>
+  <div class="card-sub">BCA Department · Sign in to continue</div>
+
+  <!-- Role selector -->
+  <div class="roles">
+    <button class="role-btn active" id="role-hod"     onclick="setRole('hod')">👑 HOD</button>
+    <button class="role-btn"        id="role-faculty" onclick="setRole('faculty')">👩‍🏫 Faculty</button>
+    <button class="role-btn"        id="role-admin"   onclick="setRole('admin')">⚙️ Admin</button>
+    <button class="role-btn"        id="role-student" onclick="setRole('student')">🎓 Student</button>
+  </div>
+
+  <!-- Error -->
+  <div class="error" id="error-msg">⚠ Invalid credentials. Please try again.</div>
+
+  <!-- Email -->
+  <div class="field">
     <label class="field-label">Email Address</label>
     <div class="input-wrap">
       <span class="input-icon">✉</span>
-      <input class="fi" type="email" id="email" placeholder="you@college.edu">
+      <input class="fi" type="email" id="email" placeholder="you@college.edu" autocomplete="email">
     </div>
- 
+  </div>
+
+  <!-- Password -->
+  <div class="field">
     <label class="field-label">Password</label>
     <div class="input-wrap">
       <span class="input-icon">🔑</span>
-      <input class="fi" type="password" id="password" placeholder="••••••••••">
+      <input class="fi" type="password" id="password" placeholder="••••••••••" autocomplete="current-password">
     </div>
- 
-    <button class="btn-submit" id="login-btn" onclick="doLogin()">Sign In →</button>
- 
-    <div class="no-account">
-      No account? <span>Contact your HOD or Admin</span><br>
-      📧 hod@college.edu · admin@college.edu
-    </div>
- 
   </div>
- 
-  <!-- Success -->
-  <div class="success-overlay" id="success-overlay">
-    <div style="font-size:52px;">✓</div>
-    <div style="font-family:var(--serif);font-size:30px;color:#fff;font-style:italic;">Welcome!</div>
-    <div style="font-size:11px;color:rgba(255,255,255,0.6);font-family:var(--mono);letter-spacing:0.15em;text-transform:uppercase;">Redirecting...</div>
+
+  <button class="btn-submit" id="login-btn" onclick="doLogin()">
+    <span id="btn-text">Sign In</span>
+    <span>→</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-txt">No account?</div>
+    <div class="divider-line"></div>
   </div>
- 
+
+  <div class="card-footer">
+    Contact your <span>HOD or Admin</span> to get access<br>
+    📧 hod@college.edu &nbsp;·&nbsp; admin@college.edu
+  </div>
+
+</div>
+
+<!-- Success overlay -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-check">✓</div>
+  <div class="success-title">Welcome!</div>
+  <div class="success-sub">Redirecting…</div>
+</div>
+
 <script>
-  // Clock
-  function tick() {
-    const n = new Date();
-    const t = [n.getHours(), n.getMinutes(), n.getSeconds()]
-      .map(x => String(x).padStart(2,'0')).join(':');
-    const el = document.getElementById('txClock');
-    if (el) el.textContent = t;
-  }
-  tick(); setInterval(tick, 1000);
- 
-  // Role
-  let selectedRole = 'hod';
-  function setRole(r) {
-    selectedRole = r;
-    ['hod','faculty','admin','student'].forEach(id => {
-      document.getElementById('role-' + id)
-        .classList.toggle('active', id === r);
-    });
-  }
- 
-  // Login
-  async function doLogin() {
-    const email = document.getElementById('email').value.trim();
-    const pass  = document.getElementById('password').value;
-    const btn   = document.getElementById('login-btn');
-    const err   = document.getElementById('error-msg');
- 
-    err.classList.remove('show');
- 
-    if (!email || !pass) {
-      err.textContent = '⚠ Please enter both email and password.';
-      err.classList.add('show'); return;
-    }
- 
-    btn.classList.add('loading');
-    btn.textContent = 'Signing In';
- 
-    try {
-      const data = await Auth.login(email, pass);
- 
-      if (data.token) {
-        if (data.user.role !== selectedRole) {
-          btn.classList.remove('loading');
-          btn.textContent = 'Sign In →';
-          err.textContent = `⚠ You are a ${data.user.role}, not a ${selectedRole}!`;
-          err.classList.add('show'); return;
-        }
- 
-        localStorage.setItem('timetrix_token', data.token);
-        sessionStorage.setItem('bca_user', JSON.stringify({
-          id: data.user.id, name: data.user.name,
-          email: data.user.email, role: data.user.role
-        }));
- 
-        document.getElementById('success-overlay').classList.add('show');
-        setTimeout(() => {
-          window.location.href = data.user.role === 'student'
-            ? 'timetable-class.html' : 'dashboard.html';
-        }, 1800);
- 
-      } else {
-        btn.classList.remove('loading');
-        btn.textContent = 'Sign In →';
-        err.textContent = '⚠ ' + (data.message || 'Invalid credentials!');
-        err.classList.add('show');
+// Clock
+function tick(){
+  const n=new Date();
+  const t=[n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+  const el=document.getElementById('clock'); if(el) el.textContent=t;
+}
+tick(); setInterval(tick,1000);
+
+// Role
+let selectedRole='hod';
+function setRole(r){
+  selectedRole=r;
+  ['hod','faculty','admin','student'].forEach(id=>{
+    document.getElementById('role-'+id).classList.toggle('active',id===r);
+  });
+}
+
+// Login
+async function doLogin(){
+  const email=document.getElementById('email').value.trim();
+  const pass =document.getElementById('password').value;
+  const btn  =document.getElementById('login-btn');
+  const err  =document.getElementById('error-msg');
+  const txt  =document.getElementById('btn-text');
+  const spin =document.getElementById('spinner');
+  err.classList.remove('show');
+  if(!email||!pass){ err.textContent='⚠ Please enter both email and password.'; err.classList.add('show'); return; }
+  btn.disabled=true; txt.textContent='Signing In'; spin.style.display='block';
+  try{
+    const data=await Auth.login(email,pass);
+    if(data.token){
+      if(data.user.role!==selectedRole){
+        btn.disabled=false; txt.textContent='Sign In'; spin.style.display='none';
+        err.textContent=`⚠ You are a ${data.user.role}, not a ${selectedRole}.`;
+        err.classList.add('show'); return;
       }
- 
-    } catch (e) {
-      btn.classList.remove('loading');
-      btn.textContent = 'Sign In →';
-      err.textContent = '⚠ Server error! Make sure backend is running.';
+      localStorage.setItem('timetrix_token',data.token);
+      sessionStorage.setItem('bca_user',JSON.stringify({id:data.user.id,name:data.user.name,email:data.user.email,role:data.user.role,faculty_id:data.user.faculty_id||null,class_name:data.user.class_name||null}));
+      document.getElementById('success-overlay').classList.add('show');
+      setTimeout(()=>{
+        if(data.user.role==='student') window.location.href='student-timetable.html';
+        else if(data.user.role==='faculty') window.location.href='faculty-timetable.html';
+        else window.location.href='dashboard.html';
+      },1600);
+    } else {
+      btn.disabled=false; txt.textContent='Sign In'; spin.style.display='none';
+      err.textContent='⚠ '+(data.message||'Invalid credentials!');
       err.classList.add('show');
     }
+  } catch(e){
+    btn.disabled=false; txt.textContent='Sign In'; spin.style.display='none';
+    err.textContent='⚠ Server error! Make sure backend is running.';
+    err.classList.add('show');
   }
- 
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter') doLogin();
-  });
+}
+
+document.addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
 </script>
- 
 </body>
 </html>

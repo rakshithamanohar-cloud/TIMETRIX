@@ -7,169 +7,195 @@
   <link rel="stylesheet" href="css/output.css">
   <script src="js/api.js"></script>
   <script src="js/auth-check.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --cr:    #a51c30;
-      --cr2:   #8b1526;
-      --card:  rgba(20,5,10,0.60);
-      --cardb: rgba(255,255,255,0.10);
-      --g1:    rgba(255,255,255,0.06);
-      --g2:    rgba(255,255,255,0.10);
-      --muted: rgba(255,255,255,0.40);
-      --cream: #ffffff;
-      --ok:    rgba(100,220,140,0.9);
-      --warn:  rgba(255,200,80,0.9);
+      --red:    #a51c30;
+      --red2:   #8b1526;
+      --redXL:  #d9566a;
+      --bg:     #f7f4f2;
+      --bgCard: #ffffff;
+      --sidebar-bg: #0f0508;
+      --text:   #1a0a0e;
+      --textMd: #4a2030;
+      --textMt: #8a6070;
+      --border: rgba(165,28,48,0.13);
+      --borderMd: rgba(165,28,48,0.25);
+      --ok:    #1a7a45;
+      --okBg:  rgba(26,122,69,0.08);
+      --okBd:  rgba(26,122,69,0.2);
+      --warn:  #9a6a00;
+      --warnBg:rgba(154,106,0,0.08);
+      --warnBd:rgba(154,106,0,0.2);
+      --err:   #c0200e;
+      --errBg: rgba(192,32,14,0.07);
+      --errBd: rgba(192,32,14,0.18);
+      --info:  #1d4ed8;
+      --infoBg:rgba(29,78,216,0.08);
+      --infoBd:rgba(29,78,216,0.2);
       --font:  'Outfit', sans-serif;
       --serif: 'Cormorant Garamond', serif;
       --mono:  'JetBrains Mono', monospace;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(165,28,48,0.06), 0 4px 16px rgba(165,28,48,0.04);
     }
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-    body {
-      background: var(--cr);
-      color: var(--cream);
-      font-family: var(--font);
-      min-height: 100vh;
-      display: flex;
-      position: relative;
-      overflow-x: hidden;
-    }
-    .shape { position:fixed; border-radius:50%; pointer-events:none; z-index:0; }
-    .s1 { width:500px;height:500px;background:rgba(0,0,0,0.15);top:-150px;left:-100px; }
-    .s2 { width:400px;height:400px;background:rgba(0,0,0,0.10);bottom:-100px;right:10%;border-radius:40% 60% 60% 40%; }
-    .s3 { width:300px;height:300px;background:rgba(255,255,255,0.04);top:30%;left:30%; }
-    body::before {
-      content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-      background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);
-      background-size:48px 48px;
-    }
+    body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; display:flex; }
 
     /* ── SIDEBAR ── */
-    .sidebar { width:240px;min-height:100vh;background:rgba(20,5,10,0.55);border-right:1px solid rgba(255,255,255,0.10);backdrop-filter:blur(20px);display:flex;flex-direction:column;padding:28px 0;position:fixed;top:0;left:0;z-index:50; }
-    .sidebar-logo { display:flex;align-items:center;gap:12px;padding:0 24px 24px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:20px; }
-    .logo-crest { width:38px;height:38px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:16px;font-weight:700;color:#fff;flex-shrink:0; }
-    .logo-name { font-family:var(--serif);font-size:20px;font-weight:700;color:#fff;line-height:1; }
-    .logo-sub  { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-top:2px; }
-    .nav-section { padding:0 12px;margin-bottom:8px; }
-    .nav-label { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0 12px;margin-bottom:6px; }
-    .nav-item { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;color:rgba(255,255,255,0.45);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;text-decoration:none;margin-bottom:2px; }
-    .nav-item:hover { background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8); }
-    .nav-item.active { background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff; }
-    .nav-icon { font-size:16px;width:20px;text-align:center; }
-    .sidebar-bottom { margin-top:auto;padding:20px 24px 0;border-top:1px solid rgba(255,255,255,0.08); }
-    .user-card { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:12px;margin-bottom:10px; }
-    .user-role  { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,200,200,0.8);margin-bottom:3px; }
-    .user-email { font-size:11px;color:rgba(255,255,255,0.5);font-family:var(--mono); }
-    .logout-btn { width:100%;padding:9px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:rgba(255,255,255,0.4);font-size:11px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s; }
-    .logout-btn:hover { border-color:rgba(255,255,255,0.35);color:#fff;background:rgba(255,255,255,0.08); }
+    .sidebar { width:220px;min-height:100vh;background:var(--sidebar-bg);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;padding:24px 0;position:fixed;top:0;left:0;z-index:50; }
+    .sidebar-logo { display:flex;align-items:center;gap:11px;padding:0 20px 22px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:18px; }
+    .logo-crest { width:34px;height:34px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:15px;font-weight:700;color:#fff;flex-shrink:0; }
+    .logo-name { font-family:var(--serif);font-size:19px;font-weight:700;color:#fff;line-height:1; }
+    .logo-sub  { font-size:8px;font-family:var(--mono);letter-spacing:0.2em;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-top:3px; }
+    .nav-section { padding:0 10px;margin-bottom:6px; }
+    .nav-label { font-size:8px;font-family:var(--mono);letter-spacing:0.22em;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:0 10px;margin-bottom:5px;margin-top:4px; }
+    .nav-item { display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:7px;color:rgba(255,255,255,0.4);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.18s;text-decoration:none;margin-bottom:1px; }
+    .nav-item:hover { background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.75); }
+    .nav-item.active { background:var(--red);color:#fff; }
+    .nav-icon { font-size:15px;width:19px;text-align:center; }
+    .sidebar-bottom { margin-top:auto;padding:18px 20px 0;border-top:1px solid rgba(255,255,255,0.07); }
+    .user-card { background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px;margin-bottom:9px; }
+    .user-role  { font-size:8px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:var(--redXL);margin-bottom:2px; }
+    .user-email { font-size:10px;color:rgba(255,255,255,0.4);font-family:var(--mono); }
+    .logout-btn { width:100%;padding:8px;background:transparent;border:1px solid rgba(255,255,255,0.12);border-radius:7px;color:rgba(255,255,255,0.35);font-size:10px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.18s; }
+    .logout-btn:hover { border-color:rgba(255,255,255,0.3);color:#fff;background:rgba(255,255,255,0.07); }
+
+    /* ── TOPBAR ── */
+    .topbar { position:fixed;top:0;left:220px;right:0;height:58px;background:rgba(247,244,242,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 36px;gap:16px;z-index:40; }
+    .topbar-search { flex:1;max-width:320px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-size:13px;color:var(--textMt); }
+    .topbar-right { margin-left:auto;display:flex;align-items:center;gap:14px; }
+    .topbar-avatar { width:32px;height:32px;border-radius:50%;background:var(--red);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center; }
+    .topbar-name { font-size:13px;font-weight:500;color:var(--text); }
+    .topbar-role { font-size:10px;color:var(--textMt);font-family:var(--mono); }
 
     /* ── MAIN ── */
-    .main { margin-left:240px;flex:1;padding:36px 40px;position:relative;z-index:1; }
-    .page-eyebrow { font-size:9px;font-family:var(--mono);letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,200,200,0.8);margin-bottom:6px; }
-    .page-title { font-family:var(--serif);font-size:42px;font-weight:300;color:#fff;line-height:1.08;margin-bottom:28px; }
-    .page-title strong { font-weight:700;font-style:italic; }
+    .main { margin-left:220px;padding-top:58px;flex:1;min-height:100vh; }
+    .main-inner { padding:36px 36px 48px;max-width:1200px; }
 
-    /* ── MINI STATS ── */
-    .mini-stats { display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px; }
-    .mini-stat { background:var(--card);border:1px solid var(--cardb);border-radius:10px;padding:18px;text-align:center;backdrop-filter:blur(16px); }
-    .ms-num { font-family:var(--serif);font-size:36px;font-weight:700;color:#fff;line-height:1; }
-    .ms-lbl { font-size:9px;font-family:var(--mono);letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-top:4px; }
+    /* ── PAGE HEADER ── */
+    .page-header { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px; }
+    .page-eyebrow { font-size:10px;font-family:var(--mono);letter-spacing:0.26em;text-transform:uppercase;color:var(--redXL);margin-bottom:6px; }
+    .page-title { font-family:var(--serif);font-size:46px;font-weight:300;color:var(--text);line-height:1.05; }
+    .page-title strong { font-weight:700;font-style:italic;color:var(--red); }
+    .page-subtitle { font-size:14px;color:var(--textMt);margin-top:6px; }
+
+    /* ── STATS ── */
+    .stats-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px; }
+    .stat-card { background:var(--bgCard);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);transition:transform 0.2s; }
+    .stat-card:hover { transform:translateY(-2px); }
+    .stat-icon { font-size:24px;margin-bottom:12px; }
+    .stat-num  { font-family:var(--serif);font-size:40px;font-weight:700;color:var(--text);line-height:1; }
+    .stat-lbl  { font-size:10px;font-family:var(--mono);letter-spacing:0.16em;text-transform:uppercase;color:var(--textMt);margin-top:6px; }
 
     /* ── TABS ── */
-    .tabs { display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.10);padding-bottom:0; }
-    .tab { padding:10px 22px;border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:600;font-family:var(--mono);letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;margin-bottom:-1px; }
-    .tab.active { color:#fff;border-bottom-color:rgba(255,255,255,0.6); }
-    .tab:hover:not(.active) { color:rgba(255,255,255,0.7); }
+    .tabs { display:flex;gap:2px;margin-bottom:22px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:4px;width:fit-content; }
+    .tab { padding:8px 20px;border:none;background:transparent;color:var(--textMt);font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border-radius:7px;transition:all 0.18s; }
+    .tab.active { background:var(--red);color:#fff;box-shadow:0 2px 8px rgba(165,28,48,0.25); }
+    .tab:hover:not(.active) { background:rgba(165,28,48,0.06);color:var(--textMd); }
 
     /* ── CARD ── */
-    .card { background:var(--card);border:1px solid var(--cardb);border-radius:12px;padding:24px;backdrop-filter:blur(16px);position:relative;overflow:hidden; }
-    .card::before { content:'';position:absolute;inset:0;border-radius:12px;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,0.05) 0%,transparent 60%); }
-    .card-title { font-family:var(--serif);font-size:20px;font-weight:600;font-style:italic;color:#fff;margin-bottom:18px;display:flex;align-items:center;gap:10px; }
-    .ctag { font-size:9px;font-family:var(--mono);letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,200,200,0.9);background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);padding:3px 10px;border-radius:4px;font-style:normal; }
-
-    /* ── FORM ── */
-    .form-grid { display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px; }
-    .form-group { display:flex;flex-direction:column;gap:6px; }
-    .form-label { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:var(--muted); }
-    .form-input { padding:10px 14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-size:13px;font-family:var(--font);outline:none;transition:all 0.2s; }
-    .form-input:focus { border-color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.12); }
-    .form-input::placeholder { color:var(--muted); }
-    .form-select { padding:10px 14px;background:rgba(20,5,10,0.8);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-size:13px;font-family:var(--font);outline:none;cursor:pointer; }
-
-    /* ── TOGGLE ── */
-    .toggle-row { display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06); }
-    .toggle-row:last-child { border-bottom:none; }
-    .toggle-label { font-size:12px;color:rgba(255,255,255,0.8); }
-    .toggle-sub { font-size:10px;color:var(--muted);margin-top:2px; }
-    .toggle { position:relative;width:40px;height:22px;background:rgba(255,255,255,0.15);border-radius:11px;cursor:pointer;transition:background 0.2s;flex-shrink:0; }
-    .toggle.on { background:rgba(100,200,130,0.5); }
-    .toggle::after { content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform 0.2s; }
-    .toggle.on::after { transform:translateX(18px); }
-
-    /* ── DAYS ── */
-    .days-row { display:flex;gap:6px;flex-wrap:wrap; }
-    .day-btn { padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:var(--muted);font-size:10px;font-weight:600;font-family:var(--mono);cursor:pointer;transition:all 0.2s; }
-    .day-btn.on { border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.15);color:#fff; }
-
-    /* ── BUTTONS ── */
-    .btn { display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:var(--font);letter-spacing:0.06em;cursor:pointer;transition:all 0.18s; }
-    .btn-primary { background:rgba(255,255,255,0.90);color:var(--cr);box-shadow:0 4px 18px rgba(0,0,0,0.3); }
-    .btn-primary:hover { background:#fff;transform:translateY(-1px); }
-    .btn-ghost { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.8); }
-    .btn-ghost:hover { background:rgba(255,255,255,0.14);color:#fff; }
-    .btn-danger { background:rgba(255,100,100,0.10);border:1px solid rgba(255,100,100,0.25);color:rgba(255,160,160,0.9); }
-    .btn-danger:hover { background:rgba(255,100,100,0.20); }
-    .btn-sm { padding:6px 14px;font-size:10px; }
+    .card { background:var(--bgCard);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow); }
+    .card-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:20px; }
+    .card-title { font-family:var(--serif);font-size:20px;font-weight:600;color:var(--text); }
+    .tag { font-size:9px;font-family:var(--mono);letter-spacing:0.12em;text-transform:uppercase;padding:3px 10px;border-radius:5px;background:rgba(165,28,48,0.08);border:1px solid var(--borderMd);color:var(--red); }
 
     /* ── RESOURCE LIST ── */
     .resource-list { display:flex;flex-direction:column;gap:10px; }
-    .resource-item { background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;transition:all 0.2s; }
-    .resource-item:hover { background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.20); }
-    .resource-item.unavailable { opacity:0.45; }
+    .resource-item { background:#faf8f7;border:1px solid var(--border);border-radius:10px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;transition:all 0.18s; }
+    .resource-item:hover { border-color:var(--borderMd);background:#fff;box-shadow:0 2px 12px rgba(165,28,48,0.06); }
+    .resource-item.unavailable { opacity:0.5; }
     .ri-left { display:flex;align-items:center;gap:14px; }
-    .ri-icon { width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.15); }
-    .ri-name { font-size:14px;font-weight:600;color:#fff;margin-bottom:3px; }
-    .ri-meta { font-size:10px;color:var(--muted);font-family:var(--mono);display:flex;gap:10px;flex-wrap:wrap; }
-    .ri-badge { font-size:9px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;padding:2px 8px;border-radius:4px; }
-    .badge-ok     { background:rgba(100,220,140,0.12);border:1px solid rgba(100,220,140,0.25);color:var(--ok); }
-    .badge-off    { background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:var(--muted); }
-    .badge-shared { background:rgba(255,200,80,0.12); border:1px solid rgba(255,200,80,0.25); color:var(--warn); }
-    .badge-proj   { background:rgba(100,150,255,0.12);border:1px solid rgba(100,150,255,0.25);color:rgba(160,190,255,0.9); }
-    .ri-actions { display:flex;gap:8px;align-items:center;flex-wrap:wrap; }
+    .ri-icon { width:42px;height:42px;border-radius:9px;background:rgba(165,28,48,0.08);border:1px solid var(--borderMd);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
+    .ri-name { font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px; }
+    .ri-meta { font-size:11px;color:var(--textMt);font-family:var(--mono);display:flex;gap:12px;flex-wrap:wrap; }
+    .ri-actions { display:flex;gap:7px;align-items:center;flex-wrap:wrap; }
 
-    /* ── BLOCKED GRID ── */
-    .slots-grid { display:grid;grid-template-columns:80px repeat(6,1fr);gap:3px; }
-    .slot-hd { background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:6px;text-align:center;font-size:9px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.7); }
-    .slot-time { background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:6px;text-align:center;font-size:9px;font-family:var(--mono);color:var(--muted); }
-    .slot-cell { border-radius:4px;padding:6px;min-height:34px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);cursor:pointer;transition:all 0.15s;text-align:center;font-size:9px;font-family:var(--mono);color:transparent;display:flex;align-items:center;justify-content:center; }
-    .slot-cell:hover { border-color:rgba(255,255,255,0.20);background:rgba(255,255,255,0.08); }
-    .slot-cell.blocked { background:rgba(255,100,100,0.15);border-color:rgba(255,100,100,0.30);color:rgba(255,160,160,0.9); }
+    /* ── BADGES ── */
+    .badge { font-size:9px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;padding:3px 9px;border-radius:5px;font-weight:600; }
+    .badge-ok     { background:var(--okBg);  border:1px solid var(--okBd);  color:var(--ok); }
+    .badge-off    { background:rgba(165,28,48,0.06);border:1px solid var(--border);color:var(--textMt); }
+    .badge-shared { background:var(--warnBg);border:1px solid var(--warnBd);color:var(--warn); }
+    .badge-proj   { background:var(--infoBg);border:1px solid var(--infoBd);color:var(--info); }
+
+    /* ── BUTTONS ── */
+    .btn { display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:var(--font);letter-spacing:0.04em;cursor:pointer;transition:all 0.16s; }
+    .btn-primary { background:var(--red);color:#fff;box-shadow:0 3px 12px rgba(165,28,48,0.25); }
+    .btn-primary:hover { background:var(--red2);transform:translateY(-1px); }
+    .btn-ghost { background:#fff;color:var(--textMd);border:1px solid var(--border); }
+    .btn-ghost:hover { border-color:var(--borderMd);color:var(--text);background:#faf8f7; }
+    .btn-danger { background:var(--errBg);border:1px solid var(--errBd);color:var(--err); }
+    .btn-danger:hover { background:rgba(192,32,14,0.14); }
+    .btn-sm { padding:6px 13px;font-size:11px; }
+
+    /* ── FORM ── */
+    .form-grid { display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px; }
+    .form-group { display:flex;flex-direction:column;gap:5px; }
+    .form-label { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:var(--textMt); }
+    .form-input { padding:10px 13px;background:#faf8f7;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color 0.18s,box-shadow 0.18s; }
+    .form-input:focus { border-color:var(--red);box-shadow:0 0 0 3px rgba(165,28,48,0.08); }
+    .form-input::placeholder { color:var(--textMt); }
+    .form-select { padding:10px 13px;background:#faf8f7;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;cursor:pointer;transition:border-color 0.18s; }
+    .form-select:focus { border-color:var(--red); }
+
+    /* ── DIVIDER ── */
+    .sec-div { display:flex;align-items:center;gap:10px;margin:18px 0 12px; }
+    .sec-div-line { flex:1;height:1px;background:var(--border); }
+    .sec-div-txt { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:var(--textMt); }
+
+    /* ── TOGGLE ── */
+    .toggle-row { display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border); }
+    .toggle-row:last-child { border-bottom:none; }
+    .toggle-label { font-size:13px;font-weight:500;color:var(--text); }
+    .toggle-sub { font-size:11px;color:var(--textMt);margin-top:2px; }
+    .toggle { position:relative;width:40px;height:22px;background:rgba(165,28,48,0.15);border-radius:11px;cursor:pointer;transition:background 0.2s;flex-shrink:0; }
+    .toggle.on { background:var(--ok); }
+    .toggle::after { content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.15); }
+    .toggle.on::after { transform:translateX(18px); }
+
+    /* ── DAY BUTTONS ── */
+    .days-row { display:flex;gap:6px;flex-wrap:wrap; }
+    .day-btn { padding:6px 13px;border-radius:7px;border:1px solid var(--border);background:#faf8f7;color:var(--textMt);font-size:11px;font-weight:600;font-family:var(--mono);cursor:pointer;transition:all 0.18s; }
+    .day-btn.on { border-color:var(--borderMd);background:rgba(165,28,48,0.08);color:var(--red); }
+
+    /* ── BLOCKED SLOTS GRID ── */
+    .slots-grid { display:grid;grid-template-columns:90px repeat(6,1fr);gap:3px; }
+    .slot-hd { background:rgba(165,28,48,0.08);border:1px solid var(--border);border-radius:4px;padding:6px;text-align:center;font-size:9px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--textMd); }
+    .slot-time { background:#faf8f7;border:1px solid var(--border);border-radius:4px;padding:6px;text-align:center;font-size:9px;font-family:var(--mono);color:var(--textMt); }
+    .slot-cell { border-radius:4px;padding:6px;min-height:32px;border:1px solid var(--border);background:#faf8f7;cursor:pointer;transition:all 0.15s;text-align:center;font-size:9px;font-family:var(--mono);color:transparent;display:flex;align-items:center;justify-content:center; }
+    .slot-cell:hover { border-color:var(--borderMd);background:rgba(165,28,48,0.05); }
+    .slot-cell.blocked { background:var(--errBg);border-color:var(--errBd);color:var(--err); }
 
     /* ── MODAL ── */
-    .modal-overlay { position:fixed;inset:0;z-index:100;background:rgba(100,10,20,0.80);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s; }
+    .modal-overlay { position:fixed;inset:0;z-index:100;background:rgba(15,5,8,0.55);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s; }
     .modal-overlay.show { opacity:1;pointer-events:all; }
-    .modal { background:rgba(20,5,10,0.97);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:32px;width:100%;max-width:580px;max-height:88vh;overflow-y:auto;transform:translateY(20px);transition:transform 0.2s; }
+    .modal { background:#fff;border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:580px;max-height:88vh;overflow-y:auto;transform:translateY(18px);transition:transform 0.22s;box-shadow:0 20px 60px rgba(165,28,48,0.12); }
     .modal-overlay.show .modal { transform:translateY(0); }
-    .modal-title { font-family:var(--serif);font-size:24px;font-weight:600;font-style:italic;color:#fff;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between; }
-    .modal-close { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--muted);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s; }
-    .modal-close:hover { color:#fff;border-color:rgba(255,255,255,0.3); }
+    .modal-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:24px; }
+    .modal-title-text { font-family:var(--serif);font-size:26px;font-weight:600;font-style:italic;color:var(--text); }
+    .modal-close { background:#faf8f7;border:1px solid var(--border);color:var(--textMt);width:32px;height:32px;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s; }
+    .modal-close:hover { background:var(--errBg);border-color:var(--errBd);color:var(--err); }
 
-    /* Section divider */
-    .sec-div { display:flex;align-items:center;gap:12px;margin:20px 0 14px; }
-    .sec-div-line { flex:1;height:1px;background:rgba(255,255,255,0.08); }
-    .sec-div-txt { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:var(--muted); }
+    /* type toggle pills */
+    .type-row { display:flex;gap:6px;margin-bottom:20px; }
 
-    .empty-state { text-align:center;padding:36px;color:var(--muted);font-family:var(--mono);font-size:12px; }
+    /* ── EMPTY ── */
+    .empty-state { text-align:center;padding:48px 24px;color:var(--textMt); }
+    .empty-icon { font-size:40px;margin-bottom:12px;opacity:0.4; }
+    .empty-text { font-size:12px;font-family:var(--mono); }
 
-    @keyframes fadeUp { from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1} }
+    /* scrollbar */
+    .modal::-webkit-scrollbar { width:4px; }
+    .modal::-webkit-scrollbar-track { background:transparent; }
+    .modal::-webkit-scrollbar-thumb { background:var(--border);border-radius:2px; }
+
+    @keyframes fadeUp { from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1} }
     .fade-up { animation:fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+    .delay-1 { animation-delay:0.05s; }
+    .delay-2 { animation-delay:0.10s; }
   </style>
 </head>
 <body>
-
-<div class="shape s1"></div>
-<div class="shape s2"></div>
-<div class="shape s3"></div>
 
 <!-- ════ SIDEBAR ════ -->
 <aside class="sidebar">
@@ -183,12 +209,12 @@
   <div class="nav-section">
     <div class="nav-label">Main</div>
     <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
-    <a class="nav-item active" href="rooms.html"><span class="nav-icon">🏫</span> Rooms & Labs</a>
+    <a class="nav-item active" href="rooms.html"><span class="nav-icon">🏫</span> Rooms &amp; Labs</a>
     <a class="nav-item" href="faculty.html"><span class="nav-icon">👩‍🏫</span> Faculty</a>
     <a class="nav-item" href="ga-engine.html"><span class="nav-icon">🧬</span> GA Engine</a>
     <a class="nav-item" href="subjects.html"><span class="nav-icon">📚</span> Subjects</a>
   </div>
-  <div class="nav-section" style="margin-top:16px;">
+  <div class="nav-section" style="margin-top:14px;">
     <div class="nav-label">Timetable</div>
     <a class="nav-item" href="timetable-class.html"><span class="nav-icon">📅</span> By Class</a>
     <a class="nav-item" href="timetable-faculty.html"><span class="nav-icon">👤</span> By Faculty</a>
@@ -198,71 +224,121 @@
       <div class="user-role" id="user-role">HOD</div>
       <div class="user-email" id="user-email">hod@bca.edu</div>
     </div>
-    <button class="logout-btn" onclick="logout()">⎋ Logout</button>
+    <button class="logout-btn" onclick="logout()">⎋ &nbsp;Logout</button>
   </div>
 </aside>
 
+<!-- ════ TOPBAR ════ -->
+<div class="topbar">
+  <div class="topbar-search">
+    <span style="color:var(--textMt);font-size:14px;">🔍</span>
+    <span>Search institutional data…</span>
+  </div>
+  <div class="topbar-right">
+    <div>
+      <div class="topbar-name" id="topbar-name">Dr. User</div>
+      <div class="topbar-role" id="topbar-role">Academic Administrator</div>
+    </div>
+    <div class="topbar-avatar" id="topbar-avatar">U</div>
+  </div>
+</div>
+
 <!-- ════ MAIN ════ -->
 <main class="main">
+<div class="main-inner">
 
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;">
+  <!-- Page Header -->
+  <div class="page-header fade-up">
     <div>
       <div class="page-eyebrow">// Resource Management</div>
-      <div class="page-title">Rooms & <strong>Labs</strong></div>
+      <div class="page-title">Rooms &amp; <strong>Labs</strong></div>
+      <div class="page-subtitle">Manage classrooms, laboratories, availability and blocked slots.</div>
     </div>
-    <div style="display:flex;gap:10px;">
-      <button class="btn btn-ghost" onclick="exportData()">⎙ Export</button>
+    <div style="display:flex;gap:9px;">
+      <button class="btn btn-ghost" onclick="exportData()">⎙ &nbsp;Export</button>
       <button class="btn btn-primary" onclick="openAddModal()">+ Add Resource</button>
     </div>
   </div>
 
-  <!-- Mini Stats -->
-  <div class="mini-stats fade-up">
-    <div class="mini-stat"><div class="ms-num" id="stat-rooms">0</div><div class="ms-lbl">Total Rooms</div></div>
-    <div class="mini-stat"><div class="ms-num" id="stat-projector">0</div><div class="ms-lbl">With Projector</div></div>
-    <div class="mini-stat"><div class="ms-num" id="stat-labs">0</div><div class="ms-lbl">Total Labs</div></div>
-    <div class="mini-stat"><div class="ms-num" id="stat-shared">0</div><div class="ms-lbl">Shared Labs</div></div>
+  <!-- Stats -->
+  <div class="stats-grid fade-up delay-1">
+    <div class="stat-card">
+      <div class="stat-icon">🏫</div>
+      <div class="stat-num" id="stat-rooms">0</div>
+      <div class="stat-lbl">Total Rooms</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📽</div>
+      <div class="stat-num" id="stat-projector">0</div>
+      <div class="stat-lbl">With Projector</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔬</div>
+      <div class="stat-num" id="stat-labs">0</div>
+      <div class="stat-lbl">Total Labs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🤝</div>
+      <div class="stat-num" id="stat-shared">0</div>
+      <div class="stat-lbl">Shared Labs</div>
+    </div>
   </div>
 
   <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('rooms')">🏫 Classrooms</button>
-    <button class="tab" onclick="switchTab('labs')">🔬 Labs</button>
+  <div class="tabs fade-up delay-1">
+    <button class="tab active" id="tab-btn-rooms" onclick="switchTab('rooms')">🏫 Classrooms</button>
+    <button class="tab"        id="tab-btn-labs"  onclick="switchTab('labs')">🔬 Labs</button>
   </div>
 
-  <!-- ROOMS TAB -->
-  <div id="tab-rooms">
+  <!-- Rooms Tab -->
+  <div id="tab-rooms" class="fade-up delay-2">
     <div class="card">
-      <div class="card-title">Classrooms <span class="ctag" id="room-count">0 Rooms</span></div>
+      <div class="card-header">
+        <div class="card-title">Classrooms</div>
+        <span class="tag" id="room-count">0 Rooms</span>
+      </div>
       <div class="resource-list" id="rooms-list">
-        <div class="empty-state">No rooms added yet. Click "+ Add Resource" to get started.</div>
+        <div class="empty-state">
+          <div class="empty-icon">🏫</div>
+          <div class="empty-text">No rooms added yet. Click "+ Add Resource" to get started.</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- LABS TAB -->
-  <div id="tab-labs" style="display:none;">
+  <!-- Labs Tab -->
+  <div id="tab-labs" style="display:none;" class="fade-up delay-2">
     <div class="card">
-      <div class="card-title">Labs <span class="ctag" id="lab-count">0 Labs</span></div>
+      <div class="card-header">
+        <div class="card-title">Labs</div>
+        <span class="tag" id="lab-count">0 Labs</span>
+      </div>
       <div class="resource-list" id="labs-list">
-        <div class="empty-state">No labs added yet. Click "+ Add Resource" to get started.</div>
+        <div class="empty-state">
+          <div class="empty-icon">🔬</div>
+          <div class="empty-text">No labs added yet. Click "+ Add Resource" to get started.</div>
+        </div>
       </div>
     </div>
   </div>
 
+</div>
 </main>
 
 <!-- ════ ADD/EDIT MODAL ════ -->
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
-    <div class="modal-title">
-      <span id="modal-title-text">Add Resource</span>
+    <div class="modal-header">
+      <div class="modal-title-text" id="modal-title-text">Add Resource</div>
       <button class="modal-close" onclick="closeModal('add-modal')">✕</button>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:20px;">
+
+    <!-- Type selector -->
+    <div class="type-row">
       <button class="btn btn-primary btn-sm" id="type-room" onclick="setType('room')">🏫 Classroom</button>
-      <button class="btn btn-ghost btn-sm"   id="type-lab"  onclick="setType('lab')">🔬 Lab</button>
+      <button class="btn btn-ghost  btn-sm" id="type-lab"  onclick="setType('lab')">🔬 Lab</button>
     </div>
+
     <div class="form-grid">
       <div class="form-group">
         <label class="form-label">Name *</label>
@@ -278,11 +354,17 @@
     <div id="room-fields">
       <div class="sec-div"><div class="sec-div-line"></div><div class="sec-div-txt">Room Settings</div><div class="sec-div-line"></div></div>
       <div class="toggle-row">
-        <div><div class="toggle-label">Has Projector</div><div class="toggle-sub">Room is equipped with a projector</div></div>
+        <div>
+          <div class="toggle-label">Has Projector</div>
+          <div class="toggle-sub">Room is equipped with a projector</div>
+        </div>
         <div class="toggle" id="toggle-projector" onclick="toggleField('projector')"></div>
       </div>
       <div class="toggle-row">
-        <div><div class="toggle-label">Available</div><div class="toggle-sub">Room is available for scheduling</div></div>
+        <div>
+          <div class="toggle-label">Available</div>
+          <div class="toggle-sub">Room is available for scheduling</div>
+        </div>
         <div class="toggle on" id="toggle-available" onclick="toggleField('available')"></div>
       </div>
     </div>
@@ -304,10 +386,13 @@
         </div>
       </div>
       <div class="toggle-row">
-        <div><div class="toggle-label">Available</div><div class="toggle-sub">Lab is available for scheduling</div></div>
+        <div>
+          <div class="toggle-label">Available</div>
+          <div class="toggle-sub">Lab is available for scheduling</div>
+        </div>
         <div class="toggle on" id="toggle-lab-available" onclick="toggleField('lab-available')"></div>
       </div>
-      <div style="margin-top:14px;">
+      <div style="margin-top:16px;">
         <div class="form-label" style="margin-bottom:8px;">Available Days</div>
         <div class="days-row" id="days-selector">
           <button class="day-btn on" onclick="toggleDay(this,'Mon')">Mon</button>
@@ -320,15 +405,15 @@
       </div>
     </div>
 
-    <!-- Blocked slots for shared labs -->
+    <!-- Blocked slots (shared labs) -->
     <div id="blocked-section" style="display:none;">
       <div class="sec-div"><div class="sec-div-line"></div><div class="sec-div-txt">Blocked Slots (Other Dept Usage)</div><div class="sec-div-line"></div></div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;font-family:var(--mono);">Click to mark when other departments use this lab</div>
+      <p style="font-size:11px;color:var(--textMt);font-family:var(--mono);margin-bottom:12px;">Click to mark when other departments use this lab.</p>
       <div class="slots-grid" id="blocked-grid"></div>
     </div>
 
-    <div style="display:flex;gap:10px;margin-top:24px;">
-      <button class="btn btn-primary" style="flex:1;" onclick="saveResource()">✓ Save Resource</button>
+    <div style="display:flex;gap:10px;margin-top:26px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="saveResource()">✓ &nbsp;Save Resource</button>
       <button class="btn btn-ghost" onclick="closeModal('add-modal')">Cancel</button>
     </div>
   </div>
@@ -337,57 +422,60 @@
 <!-- ════ BLOCKED SLOTS MODAL ════ -->
 <div class="modal-overlay" id="blocked-modal">
   <div class="modal">
-    <div class="modal-title">
-      <span id="blocked-modal-title">Blocked Slots</span>
+    <div class="modal-header">
+      <div class="modal-title-text" id="blocked-modal-title">Blocked Slots</div>
       <button class="modal-close" onclick="closeModal('blocked-modal')">✕</button>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:16px;font-family:var(--mono);">Click slots to mark when other departments occupy this lab.</div>
+    <p style="font-size:12px;color:var(--textMt);font-family:var(--mono);margin-bottom:16px;">Click slots to mark when other departments occupy this lab.</p>
     <div class="slots-grid" id="blocked-grid-main"></div>
-    <div style="display:flex;gap:10px;margin-top:20px;">
-      <button class="btn btn-primary" style="flex:1;" onclick="saveBlockedSlots()">✓ Save</button>
+    <div style="display:flex;gap:10px;margin-top:22px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="saveBlockedSlots()">✓ &nbsp;Save</button>
       <button class="btn btn-ghost" onclick="closeModal('blocked-modal')">Cancel</button>
     </div>
   </div>
 </div>
 
 <script>
-  let rooms = [];
-let labs  = [];
-let currentType  = 'room';
-let editingId    = null;
-let currentLabId = null;
-let toggleState  = { projector:false, available:true, 'lab-available':true };
-let selectedDays = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+let rooms=[], labs=[], currentType='room', editingId=null, currentLabId=null;
+let toggleState={projector:false,available:true,'lab-available':true};
+let selectedDays=['Mon','Tue','Wed','Thu','Fri','Sat'];
 
-const TIME_SLOTS = ['8:00–9:00','9:00–10:00','10:00–11:00','11:00–12:00','12:00–1:00','1:00–2:00','2:00–3:00','3:00–4:00','4:00–5:00'];
-const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+const TIME_SLOTS=['8:00–9:00','9:00–10:00','10:00–11:00','11:00–12:00','12:00–1:00','1:00–2:00','2:00–3:00','3:00–4:00','4:00–5:00'];
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat'];
 
-const u = checkAuth(['hod','admin']);
+const u=checkAuth(['hod','admin']);
 applyRoleUI(u);
+function logout(){ sessionStorage.removeItem('bca_user'); window.location.href='index.html'; }
 
-function updateStats() {
-  document.getElementById('stat-rooms').textContent     = rooms.length;
-  document.getElementById('stat-projector').textContent = rooms.filter(r=>r.projector==1||r.projector===true).length;
-  document.getElementById('stat-labs').textContent      = labs.length;
-  document.getElementById('stat-shared').textContent    = labs.filter(l=>l.labtype==='shared').length;
-  document.getElementById('room-count').textContent     = rooms.length+' Rooms';
-  document.getElementById('lab-count').textContent      = labs.length+' Labs';
+const initials=(u.email||'U').charAt(0).toUpperCase();
+document.getElementById('topbar-avatar').textContent=initials;
+document.getElementById('topbar-name').textContent=u.email?u.email.split('@')[0].replace(/\b\w/g,c=>c.toUpperCase()):'User';
+document.getElementById('topbar-role').textContent=(u.role||'User').toUpperCase();
+
+function updateStats(){
+  document.getElementById('stat-rooms').textContent    =rooms.length;
+  document.getElementById('stat-projector').textContent=rooms.filter(r=>r.projector==1||r.projector===true).length;
+  document.getElementById('stat-labs').textContent     =labs.length;
+  document.getElementById('stat-shared').textContent   =labs.filter(l=>l.labtype==='shared').length;
+  document.getElementById('room-count').textContent    =rooms.length+' Rooms';
+  document.getElementById('lab-count').textContent     =labs.length+' Labs';
 }
 
-function switchTab(tab) {
-  document.getElementById('tab-rooms').style.display = tab==='rooms'?'':'none';
-  document.getElementById('tab-labs').style.display  = tab==='labs'?'':'none';
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='rooms')||(i===1&&tab==='labs')));
+function switchTab(tab){
+  document.getElementById('tab-rooms').style.display=tab==='rooms'?'':'none';
+  document.getElementById('tab-labs').style.display =tab==='labs' ?'':'none';
+  document.getElementById('tab-btn-rooms').classList.toggle('active',tab==='rooms');
+  document.getElementById('tab-btn-labs').classList.toggle('active', tab==='labs');
 }
 
-function openAddModal(id=null,type='room') {
+function openAddModal(id=null,type='room'){
   editingId=id; currentType=type;
-  if (id) {
-    const item = type==='room'?rooms.find(r=>r.id==id):labs.find(l=>l.id==id);
+  if(id){
+    const item=type==='room'?rooms.find(r=>r.id==id):labs.find(l=>l.id==id);
     document.getElementById('modal-title-text').textContent='Edit Resource';
     document.getElementById('f-name').value=item.name;
     document.getElementById('f-capacity').value=item.capacity;
-    if (type==='room') {
+    if(type==='room'){
       toggleState.projector=item.projector==1||item.projector===true;
       toggleState.available=item.available==1||item.available===true;
       document.getElementById('toggle-projector').classList.toggle('on',toggleState.projector);
@@ -419,37 +507,37 @@ function openAddModal(id=null,type='room') {
   document.getElementById('add-modal').classList.add('show');
 }
 
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 
-function setType(t) {
+function setType(t){
   currentType=t;
   document.getElementById('room-fields').style.display=t==='room'?'':'none';
-  document.getElementById('lab-fields').style.display=t==='lab'?'':'none';
+  document.getElementById('lab-fields').style.display =t==='lab' ?'':'none';
   document.getElementById('blocked-section').style.display='none';
   document.getElementById('type-room').className='btn btn-sm '+(t==='room'?'btn-primary':'btn-ghost');
-  document.getElementById('type-lab').className='btn btn-sm '+(t==='lab'?'btn-primary':'btn-ghost');
-  if (t==='lab') { buildBlockedGrid('blocked-grid'); toggleSharedFields(document.getElementById('f-labtype').value); }
+  document.getElementById('type-lab').className ='btn btn-sm '+(t==='lab' ?'btn-primary':'btn-ghost');
+  if(t==='lab'){ buildBlockedGrid('blocked-grid'); toggleSharedFields(document.getElementById('f-labtype').value); }
 }
 
-function toggleField(key) {
+function toggleField(key){
   toggleState[key]=!toggleState[key];
   document.getElementById('toggle-'+key).classList.toggle('on',toggleState[key]);
 }
 
-function toggleDay(btn,day) {
+function toggleDay(btn,day){
   btn.classList.toggle('on');
-  if (selectedDays.includes(day)) selectedDays=selectedDays.filter(d=>d!==day);
+  if(selectedDays.includes(day)) selectedDays=selectedDays.filter(d=>d!==day);
   else selectedDays.push(day);
 }
 
-function toggleSharedFields(val) {
+function toggleSharedFields(val){
   const isShared=val==='shared';
   document.getElementById('shared-fields').style.display=isShared?'':'none';
   document.getElementById('blocked-section').style.display=isShared?'':'none';
-  if (isShared) buildBlockedGrid('blocked-grid');
+  if(isShared) buildBlockedGrid('blocked-grid');
 }
 
-function buildBlockedGrid(containerId,existingBlocked=[]) {
+function buildBlockedGrid(containerId,existingBlocked=[]){
   const c=document.getElementById(containerId);
   let html='<div class="slot-hd">Time</div>';
   DAYS.forEach(d=>html+=`<div class="slot-hd">${d}</div>`);
@@ -464,70 +552,46 @@ function buildBlockedGrid(containerId,existingBlocked=[]) {
   c.innerHTML=html;
 }
 
-function toggleSlot(el) { el.classList.toggle('blocked'); el.textContent=el.classList.contains('blocked')?'✕':''; }
+function toggleSlot(el){ el.classList.toggle('blocked'); el.textContent=el.classList.contains('blocked')?'✕':''; }
 
-function getBlockedSlots(containerId) {
+function getBlockedSlots(containerId){
   return [...document.querySelectorAll(`#${containerId} .slot-cell.blocked`)].map(el=>el.dataset.key);
 }
 
-async function saveResource() {
+async function saveResource(){
   const name=document.getElementById('f-name').value.trim();
   const capacity=document.getElementById('f-capacity').value.trim();
-  if (!name||!capacity) { alert('Please fill in Name and Capacity!'); return; }
-
-  try {
-    if (currentType==='room') {
-      const data = {
-        name, capacity:parseInt(capacity),
-        projector:toggleState.projector,
-        available:toggleState.available
-      };
-      if (editingId) await Rooms.update(editingId, data);
-      else await Rooms.add(data);
+  if(!name||!capacity){ alert('Please fill in Name and Capacity!'); return; }
+  try{
+    if(currentType==='room'){
+      const data={name,capacity:parseInt(capacity),projector:toggleState.projector,available:toggleState.available};
+      editingId?await Rooms.update(editingId,data):await Rooms.add(data);
     } else {
       const labtype=document.getElementById('f-labtype').value;
-      const data = {
-        name, capacity:parseInt(capacity), labtype,
-        shared_with:document.getElementById('f-sharedwith').value.trim(),
-        available:toggleState['lab-available'],
-        days:selectedDays,
-        blockedSlots:labtype==='shared'?getBlockedSlots('blocked-grid'):[]
-      };
-      if (editingId) await Labs.update(editingId, data);
-      else await Labs.add(data);
+      const data={name,capacity:parseInt(capacity),labtype,shared_with:document.getElementById('f-sharedwith').value.trim(),available:toggleState['lab-available'],days:selectedDays,blockedSlots:labtype==='shared'?getBlockedSlots('blocked-grid'):[]};
+      editingId?await Labs.update(editingId,data):await Labs.add(data);
     }
-    await loadFromBackend();
-    closeModal('add-modal');
-  } catch(e) {
-    alert('Error saving! Make sure backend is running.');
-  }
+    await loadFromBackend(); closeModal('add-modal');
+  } catch(e){ alert('Error saving! Make sure backend is running.'); }
 }
 
-async function deleteResource(id,type) {
-  if (!confirm('Delete this resource?')) return;
-  try {
-    if (type==='room') await Rooms.delete(id);
-    else await Labs.delete(id);
+async function deleteResource(id,type){
+  if(!confirm('Delete this resource?')) return;
+  try{
+    type==='room'?await Rooms.delete(id):await Labs.delete(id);
     await loadFromBackend();
-  } catch(e) {
-    alert('Error deleting!');
-  }
+  } catch(e){ alert('Error deleting!'); }
 }
 
-async function toggleAvailability(id,type) {
-  try {
-    if (type==='room') {
-      const r=rooms.find(r=>r.id==id);
-      await Rooms.update(id,{...r,available:!(r.available==1||r.available===true)});
-    } else {
-      const l=labs.find(l=>l.id==id);
-      await Labs.update(id,{...l,available:!(l.available==1||l.available===true)});
-    }
+async function toggleAvailability(id,type){
+  try{
+    if(type==='room'){ const r=rooms.find(r=>r.id==id); await Rooms.update(id,{...r,available:!(r.available==1||r.available===true)}); }
+    else { const l=labs.find(l=>l.id==id); await Labs.update(id,{...l,available:!(l.available==1||l.available===true)}); }
     await loadFromBackend();
-  } catch(e) { console.error(e); }
+  } catch(e){ console.error(e); }
 }
 
-function openBlockedModal(labId) {
+function openBlockedModal(labId){
   currentLabId=labId;
   const lab=labs.find(l=>l.id==labId);
   document.getElementById('blocked-modal-title').textContent=`Blocked Slots — ${lab.name}`;
@@ -535,43 +599,45 @@ function openBlockedModal(labId) {
   document.getElementById('blocked-modal').classList.add('show');
 }
 
-async function saveBlockedSlots() {
+async function saveBlockedSlots(){
   const blocked=getBlockedSlots('blocked-grid-main');
   const lab=labs.find(l=>l.id==currentLabId);
-  try {
-    await Labs.update(currentLabId,{...lab,blockedSlots:blocked});
-    await loadFromBackend();
-    closeModal('blocked-modal');
-  } catch(e) { alert('Error saving blocked slots!'); }
+  try{ await Labs.update(currentLabId,{...lab,blockedSlots:blocked}); await loadFromBackend(); closeModal('blocked-modal'); }
+  catch(e){ alert('Error saving blocked slots!'); }
 }
 
-function renderRooms() {
+const isAvail=x=>x==1||x===true;
+
+function renderRooms(){
   const c=document.getElementById('rooms-list');
-  if (!rooms.length) { c.innerHTML='<div class="empty-state">No rooms added yet.</div>'; return; }
+  if(!rooms.length){ c.innerHTML='<div class="empty-state"><div class="empty-icon">🏫</div><div class="empty-text">No rooms added yet.</div></div>'; return; }
   c.innerHTML=rooms.map(r=>`
-    <div class="resource-item ${(r.available==1||r.available===true)?'':'unavailable'}">
+    <div class="resource-item ${isAvail(r.available)?'':'unavailable'}">
       <div class="ri-left">
         <div class="ri-icon">🏫</div>
         <div>
           <div class="ri-name">${r.name}</div>
-          <div class="ri-meta"><span>Capacity: ${r.capacity}</span>${(r.projector==1||r.projector===true)?'<span>📽 Projector</span>':''}</div>
+          <div class="ri-meta">
+            <span>Capacity: ${r.capacity}</span>
+            ${isAvail(r.projector)?'<span>📽 Projector</span>':''}
+          </div>
         </div>
       </div>
       <div class="ri-actions">
-        ${(r.projector==1||r.projector===true)?'<span class="ri-badge badge-proj">Projector</span>':''}
-        <span class="ri-badge ${(r.available==1||r.available===true)?'badge-ok':'badge-off'}">${(r.available==1||r.available===true)?'Available':'Unavailable'}</span>
-        <button class="btn btn-ghost btn-sm" onclick="toggleAvailability('${r.id}','room')">${(r.available==1||r.available===true)?'Mark Off':'Mark On'}</button>
+        ${isAvail(r.projector)?'<span class="badge badge-proj">Projector</span>':''}
+        <span class="badge ${isAvail(r.available)?'badge-ok':'badge-off'}">${isAvail(r.available)?'Available':'Unavailable'}</span>
+        <button class="btn btn-ghost btn-sm" onclick="toggleAvailability('${r.id}','room')">${isAvail(r.available)?'Mark Off':'Mark On'}</button>
         <button class="btn btn-ghost btn-sm" onclick="openAddModal('${r.id}','room')">✏ Edit</button>
         <button class="btn btn-danger btn-sm" onclick="deleteResource('${r.id}','room')">✕</button>
       </div>
     </div>`).join('');
 }
 
-function renderLabs() {
+function renderLabs(){
   const c=document.getElementById('labs-list');
-  if (!labs.length) { c.innerHTML='<div class="empty-state">No labs added yet.</div>'; return; }
+  if(!labs.length){ c.innerHTML='<div class="empty-state"><div class="empty-icon">🔬</div><div class="empty-text">No labs added yet.</div></div>'; return; }
   c.innerHTML=labs.map(l=>`
-    <div class="resource-item ${(l.available==1||l.available===true)?'':'unavailable'}">
+    <div class="resource-item ${isAvail(l.available)?'':'unavailable'}">
       <div class="ri-left">
         <div class="ri-icon">🔬</div>
         <div>
@@ -585,38 +651,30 @@ function renderLabs() {
         </div>
       </div>
       <div class="ri-actions">
-        <span class="ri-badge ${l.labtype==='shared'?'badge-shared':'badge-ok'}">${l.labtype==='shared'?'Shared':'Exclusive'}</span>
-        <span class="ri-badge ${(l.available==1||l.available===true)?'badge-ok':'badge-off'}">${(l.available==1||l.available===true)?'Available':'Unavailable'}</span>
+        <span class="badge ${l.labtype==='shared'?'badge-shared':'badge-ok'}">${l.labtype==='shared'?'Shared':'Exclusive'}</span>
+        <span class="badge ${isAvail(l.available)?'badge-ok':'badge-off'}">${isAvail(l.available)?'Available':'Unavailable'}</span>
         ${l.labtype==='shared'?`<button class="btn btn-ghost btn-sm" onclick="openBlockedModal('${l.id}')">🚫 Slots</button>`:''}
-        <button class="btn btn-ghost btn-sm" onclick="toggleAvailability('${l.id}','lab')">${(l.available==1||l.available===true)?'Mark Off':'Mark On'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleAvailability('${l.id}','lab')">${isAvail(l.available)?'Mark Off':'Mark On'}</button>
         <button class="btn btn-ghost btn-sm" onclick="openAddModal('${l.id}','lab')">✏ Edit</button>
         <button class="btn btn-danger btn-sm" onclick="deleteResource('${l.id}','lab')">✕</button>
       </div>
     </div>`).join('');
 }
 
-function exportData() {
+function exportData(){
   const blob=new Blob([JSON.stringify({rooms,labs},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='bca_resources.json'; a.click();
 }
 
-async function loadFromBackend() {
-  try {
-    const [roomsRes, labsRes] = await Promise.all([
-      Rooms.getAll(),
-      Labs.getAll()
-    ]);
-    if (Array.isArray(roomsRes)) rooms = roomsRes;
-    if (Array.isArray(labsRes))  labs  = labsRes;
-  } catch(e) {
-    console.log('Backend unavailable');
-  }
-  renderRooms();
-  renderLabs();
-  updateStats();
+async function loadFromBackend(){
+  try{
+    const [rRes,lRes]=await Promise.all([Rooms.getAll(),Labs.getAll()]);
+    if(Array.isArray(rRes)) rooms=rRes;
+    if(Array.isArray(lRes)) labs=lRes;
+  } catch(e){ console.log('Backend unavailable'); }
+  renderRooms(); renderLabs(); updateStats();
 }
 
-// ── INIT ──────────────────────────────────────
 loadFromBackend();
 </script>
 </body>

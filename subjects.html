@@ -6,169 +6,172 @@
   <title>Timetrix — Subjects & Curriculum</title>
   <link rel="stylesheet" href="css/output.css">
   <script src="js/api.js"></script>
-   <script src="js/auth-check.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="js/auth-check.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --cr:    #a51c30;
-      --cr2:   #8b1526;
-      --card:  rgba(20,5,10,0.60);
-      --cardb: rgba(255,255,255,0.10);
-      --muted: rgba(255,255,255,0.40);
-      --cream: #ffffff;
-      --ok:    rgba(100,220,140,0.9);
-      --warn:  rgba(255,200,80,0.9);
+      --red:    #a51c30;
+      --red2:   #8b1526;
+      --redXL:  #d9566a;
+      --bg:     #f7f4f2;
+      --bgCard: #ffffff;
+      --sidebar-bg: #0f0508;
+      --text:   #1a0a0e;
+      --textMd: #4a2030;
+      --textMt: #8a6070;
+      --border: rgba(165,28,48,0.13);
+      --borderMd: rgba(165,28,48,0.25);
+      --ok:    #1a7a45;
+      --okBg:  rgba(26,122,69,0.08);
+      --okBd:  rgba(26,122,69,0.2);
+      --warn:  #9a6a00;
+      --warnBg:rgba(154,106,0,0.08);
+      --warnBd:rgba(154,106,0,0.2);
+      --err:   #c0200e;
+      --errBg: rgba(192,32,14,0.07);
+      --errBd: rgba(192,32,14,0.18);
+      --info:  #1d4ed8;
+      --infoBg:rgba(29,78,216,0.08);
+      --infoBd:rgba(29,78,216,0.2);
+      --purple:#6d28d9;
+      --purpleBg:rgba(109,40,217,0.08);
+      --purpleBd:rgba(109,40,217,0.2);
       --font:  'Outfit', sans-serif;
       --serif: 'Cormorant Garamond', serif;
       --mono:  'JetBrains Mono', monospace;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(165,28,48,0.06), 0 4px 16px rgba(165,28,48,0.04);
     }
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-    body {
-      background: var(--cr);
-      color: var(--cream);
-      font-family: var(--font);
-      min-height: 100vh;
-      display: flex;
-      position: relative;
-      overflow-x: hidden;
-    }
-    .shape { position:fixed; border-radius:50%; pointer-events:none; z-index:0; }
-    .s1 { width:500px;height:500px;background:rgba(0,0,0,0.15);top:-150px;left:-100px; }
-    .s2 { width:400px;height:400px;background:rgba(0,0,0,0.10);bottom:-100px;right:10%;border-radius:40% 60% 60% 40%; }
-    .s3 { width:300px;height:300px;background:rgba(255,255,255,0.04);top:30%;left:30%; }
-    body::before {
-      content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-      background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);
-      background-size:48px 48px;
-    }
-
-    /* ── SIDEBAR ── */
-    .sidebar { width:240px;min-height:100vh;background:rgba(20,5,10,0.55);border-right:1px solid rgba(255,255,255,0.10);backdrop-filter:blur(20px);display:flex;flex-direction:column;padding:28px 0;position:fixed;top:0;left:0;z-index:50; }
-    .sidebar-logo { display:flex;align-items:center;gap:12px;padding:0 24px 24px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:20px; }
-    .logo-crest { width:38px;height:38px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:16px;font-weight:700;color:#fff;flex-shrink:0; }
-    .logo-name { font-family:var(--serif);font-size:20px;font-weight:700;color:#fff;line-height:1; }
-    .logo-sub  { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-top:2px; }
-    .nav-section { padding:0 12px;margin-bottom:8px; }
-    .nav-label { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0 12px;margin-bottom:6px; }
-    .nav-item { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;color:rgba(255,255,255,0.45);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;text-decoration:none;margin-bottom:2px; }
-    .nav-item:hover { background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8); }
-    .nav-item.active { background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff; }
-    .nav-icon { font-size:16px;width:20px;text-align:center; }
-    .sidebar-bottom { margin-top:auto;padding:20px 24px 0;border-top:1px solid rgba(255,255,255,0.08); }
-    .user-card { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:12px;margin-bottom:10px; }
-    .user-role  { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,200,200,0.8);margin-bottom:3px; }
-    .user-email { font-size:11px;color:rgba(255,255,255,0.5);font-family:var(--mono); }
-    .logout-btn { width:100%;padding:9px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:rgba(255,255,255,0.4);font-size:11px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s; }
-    .logout-btn:hover { border-color:rgba(255,255,255,0.35);color:#fff;background:rgba(255,255,255,0.08); }
-
-    /* ── MAIN ── */
-    .main { margin-left:240px;flex:1;padding:36px 40px;position:relative;z-index:1; }
-    .page-eyebrow { font-size:9px;font-family:var(--mono);letter-spacing:0.28em;text-transform:uppercase;color:rgba(255,200,200,0.8);margin-bottom:6px; }
-    .page-title { font-family:var(--serif);font-size:42px;font-weight:300;color:#fff;line-height:1.08;margin-bottom:28px; }
-    .page-title strong { font-weight:700;font-style:italic; }
-
-    /* ── CARD ── */
-    .card { background:var(--card);border:1px solid var(--cardb);border-radius:12px;padding:24px;backdrop-filter:blur(16px);position:relative;overflow:hidden;margin-bottom:20px; }
-    .card::before { content:'';position:absolute;inset:0;border-radius:12px;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,0.05) 0%,transparent 60%); }
-    .card-title { font-family:var(--serif);font-size:20px;font-weight:600;font-style:italic;color:#fff;margin-bottom:18px;display:flex;align-items:center;gap:10px; }
-    .ctag { font-size:9px;font-family:var(--mono);letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,200,200,0.9);background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);padding:3px 10px;border-radius:4px;font-style:normal; }
-
-    /* ── TABS ── */
-    .tabs { display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.10); }
-    .tab { padding:10px 22px;border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:600;font-family:var(--mono);letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;margin-bottom:-1px; }
-    .tab.active { color:#fff;border-bottom-color:rgba(255,255,255,0.6); }
-    .tab:hover:not(.active) { color:rgba(255,255,255,0.7); }
-
-    /* ── MINI STATS ── */
-    .mini-stats { display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px; }
-    .mini-stat { background:var(--card);border:1px solid var(--cardb);border-radius:10px;padding:18px;text-align:center;backdrop-filter:blur(16px); }
-    .ms-num { font-family:var(--serif);font-size:36px;font-weight:700;color:#fff;line-height:1; }
-    .ms-lbl { font-size:9px;font-family:var(--mono);letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-top:4px; }
-
-    /* ── FORM ── */
-    .form-grid { display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px; }
-    .form-grid-3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px; }
-    .form-group { display:flex;flex-direction:column;gap:6px; }
-    .form-label { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:var(--muted); }
-    .form-input { padding:10px 14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-size:13px;font-family:var(--font);outline:none;transition:all 0.2s; }
-    .form-input:focus { border-color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.12); }
-    .form-input::placeholder { color:var(--muted); }
-    .form-select { padding:10px 14px;background:rgba(20,5,10,0.8);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-size:13px;font-family:var(--font);outline:none;cursor:pointer;transition:all 0.2s; }
-    .form-select:focus { border-color:rgba(255,255,255,0.4); }
-
-    /* ── BUTTONS ── */
-    .btn { display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:var(--font);letter-spacing:0.06em;cursor:pointer;transition:all 0.18s; }
-    .btn-primary { background:rgba(255,255,255,0.90);color:var(--cr);box-shadow:0 4px 18px rgba(0,0,0,0.3); }
-    .btn-primary:hover { background:#fff;transform:translateY(-1px); }
-    .btn-ghost { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.8); }
-    .btn-ghost:hover { background:rgba(255,255,255,0.14);color:#fff; }
-    .btn-danger { background:rgba(255,100,100,0.10);border:1px solid rgba(255,100,100,0.25);color:rgba(255,160,160,0.9); }
-    .btn-danger:hover { background:rgba(255,100,100,0.20); }
-    .btn-sm { padding:6px 14px;font-size:10px; }
-
-    /* ── SUBJECT LIST ── */
+    body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; display:flex; }
+    .sidebar { width:220px;min-height:100vh;background:var(--sidebar-bg);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;padding:24px 0;position:fixed;top:0;left:0;z-index:50; }
+    .sidebar-logo { display:flex;align-items:center;gap:11px;padding:0 20px 22px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:18px; }
+    .logo-crest { width:34px;height:34px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:15px;font-weight:700;color:#fff;flex-shrink:0; }
+    .logo-name { font-family:var(--serif);font-size:19px;font-weight:700;color:#fff;line-height:1; }
+    .logo-sub  { font-size:8px;font-family:var(--mono);letter-spacing:0.2em;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-top:3px; }
+    .nav-section { padding:0 10px;margin-bottom:6px; }
+    .nav-label { font-size:8px;font-family:var(--mono);letter-spacing:0.22em;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:0 10px;margin-bottom:5px;margin-top:4px; }
+    .nav-item { display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:7px;color:rgba(255,255,255,0.4);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.18s;text-decoration:none;margin-bottom:1px; }
+    .nav-item:hover { background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.75); }
+    .nav-item.active { background:var(--red);color:#fff; }
+    .nav-icon { font-size:15px;width:19px;text-align:center; }
+    .sidebar-bottom { margin-top:auto;padding:18px 20px 0;border-top:1px solid rgba(255,255,255,0.07); }
+    .user-card { background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px;margin-bottom:9px; }
+    .user-role  { font-size:8px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:var(--redXL);margin-bottom:2px; }
+    .user-email { font-size:10px;color:rgba(255,255,255,0.4);font-family:var(--mono); }
+    .logout-btn { width:100%;padding:8px;background:transparent;border:1px solid rgba(255,255,255,0.12);border-radius:7px;color:rgba(255,255,255,0.35);font-size:10px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.18s; }
+    .logout-btn:hover { border-color:rgba(255,255,255,0.3);color:#fff;background:rgba(255,255,255,0.07); }
+    .topbar { position:fixed;top:0;left:220px;right:0;height:58px;background:rgba(247,244,242,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 36px;gap:16px;z-index:40; }
+    .topbar-search { flex:1;max-width:320px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-size:13px;color:var(--textMt); }
+    .topbar-right { margin-left:auto;display:flex;align-items:center;gap:14px; }
+    .topbar-avatar { width:32px;height:32px;border-radius:50%;background:var(--red);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center; }
+    .topbar-name { font-size:13px;font-weight:500;color:var(--text); }
+    .topbar-role { font-size:10px;color:var(--textMt);font-family:var(--mono); }
+    .main { margin-left:220px;padding-top:58px;flex:1;min-height:100vh; }
+    .main-inner { padding:36px 36px 48px;max-width:1200px; }
+    .page-header { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px; }
+    .page-eyebrow { font-size:10px;font-family:var(--mono);letter-spacing:0.26em;text-transform:uppercase;color:var(--redXL);margin-bottom:6px; }
+    .page-title { font-family:var(--serif);font-size:46px;font-weight:300;color:var(--text);line-height:1.05; }
+    .page-title strong { font-weight:700;font-style:italic;color:var(--red); }
+    .page-subtitle { font-size:14px;color:var(--textMt);margin-top:6px; }
+    .stats-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px; }
+    .stat-card { background:var(--bgCard);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);transition:transform 0.2s; }
+    .stat-card:hover { transform:translateY(-2px); }
+    .stat-icon { font-size:24px;margin-bottom:12px; }
+    .stat-num  { font-family:var(--serif);font-size:40px;font-weight:700;color:var(--text);line-height:1; }
+    .stat-lbl  { font-size:10px;font-family:var(--mono);letter-spacing:0.16em;text-transform:uppercase;color:var(--textMt);margin-top:6px; }
+    .tabs { display:flex;gap:2px;margin-bottom:22px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:4px;width:fit-content; }
+    .tab { padding:8px 20px;border:none;background:transparent;color:var(--textMt);font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;border-radius:7px;transition:all 0.18s; }
+    .tab.active { background:var(--red);color:#fff;box-shadow:0 2px 8px rgba(165,28,48,0.25); }
+    .tab:hover:not(.active) { background:rgba(165,28,48,0.06);color:var(--textMd); }
+    .card { background:var(--bgCard);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow); }
+    .card-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:20px; }
+    .card-title { font-family:var(--serif);font-size:20px;font-weight:600;color:var(--text); }
+    .tag { font-size:9px;font-family:var(--mono);letter-spacing:0.12em;text-transform:uppercase;padding:3px 10px;border-radius:5px;background:rgba(165,28,48,0.08);border:1px solid var(--borderMd);color:var(--red); }
     .subject-list { display:flex;flex-direction:column;gap:10px; }
-    .subject-item { background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;transition:all 0.2s; }
-    .subject-item:hover { background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.20); }
-    .si-left { display:flex;align-items:center;gap:14px; }
-    .si-icon { width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
-    .si-icon.theory  { background:rgba(100,150,255,0.15);border:1px solid rgba(100,150,255,0.25); }
-    .si-icon.lab     { background:rgba(100,220,140,0.12);border:1px solid rgba(100,220,140,0.22); }
-    .si-icon.language{ background:rgba(255,200,80,0.12); border:1px solid rgba(255,200,80,0.22); }
-    .si-icon.project { background:rgba(200,130,255,0.12);border:1px solid rgba(200,130,255,0.22); }
-    .si-name { font-size:14px;font-weight:600;color:#fff;margin-bottom:3px; }
-    .si-meta { font-size:10px;color:var(--muted);font-family:var(--mono);display:flex;gap:10px;flex-wrap:wrap; }
-    .si-badge { font-size:9px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;padding:2px 8px;border-radius:4px; }
-    .badge-theory   { background:rgba(100,150,255,0.12);border:1px solid rgba(100,150,255,0.25);color:rgba(160,190,255,0.9); }
-    .badge-lab      { background:rgba(100,220,140,0.12);border:1px solid rgba(100,220,140,0.25);color:var(--ok); }
-    .badge-language { background:rgba(255,200,80,0.12); border:1px solid rgba(255,200,80,0.25); color:var(--warn); }
-    .badge-project  { background:rgba(200,130,255,0.12);border:1px solid rgba(200,130,255,0.25);color:rgba(220,180,255,0.9); }
-    .si-actions { display:flex;gap:8px;align-items:center; }
-
-    /* ── MODAL ── */
-    .modal-overlay { position:fixed;inset:0;z-index:100;background:rgba(100,10,20,0.80);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s; }
+    .subject-item { background:#faf8f7;border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;transition:all 0.18s;gap:12px; }
+    .subject-item:hover { border-color:var(--borderMd);background:#fff;box-shadow:0 2px 12px rgba(165,28,48,0.06); }
+    .si-left { display:flex;align-items:center;gap:14px;flex:1;min-width:0; }
+    .si-icon { width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;border:1px solid; }
+    .si-icon.theory   { background:var(--infoBg);  border-color:var(--infoBd); }
+    .si-icon.lab      { background:var(--okBg);    border-color:var(--okBd); }
+    .si-icon.language { background:var(--warnBg);  border-color:var(--warnBd); }
+    .si-icon.project  { background:var(--purpleBg);border-color:var(--purpleBd); }
+    .si-name { font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px; }
+    .si-code { font-size:10px;color:var(--textMt);font-family:var(--mono);margin-left:6px; }
+    .si-meta { font-size:10px;color:var(--textMt);font-family:var(--mono);display:flex;gap:10px;flex-wrap:wrap;margin-top:3px; }
+    .si-actions { display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end; }
+    .badge { font-size:9px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;padding:3px 9px;border-radius:5px;font-weight:600;white-space:nowrap; }
+    .badge-theory   { background:var(--infoBg);  border:1px solid var(--infoBd);  color:var(--info); }
+    .badge-lab      { background:var(--okBg);    border:1px solid var(--okBd);    color:var(--ok); }
+    .badge-language { background:var(--warnBg);  border:1px solid var(--warnBd);  color:var(--warn); }
+    .badge-project  { background:var(--purpleBg);border:1px solid var(--purpleBd);color:var(--purple); }
+    .badge-batch    { background:var(--okBg);    border:1px solid var(--okBd);    color:var(--ok); }
+    .badge-shared   { background:rgba(165,28,48,0.08);border:1px solid var(--borderMd);color:var(--red); }
+    .badge-lang-k   { background:var(--warnBg);border:1px solid var(--warnBd);color:var(--warn); }
+    .btn { display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border:none;border-radius:8px;font-size:12px;font-weight:600;font-family:var(--font);letter-spacing:0.04em;cursor:pointer;transition:all 0.16s; }
+    .btn-primary { background:var(--red);color:#fff;box-shadow:0 3px 12px rgba(165,28,48,0.25); }
+    .btn-primary:hover { background:var(--red2);transform:translateY(-1px); }
+    .btn-ghost { background:#fff;color:var(--textMd);border:1px solid var(--border); }
+    .btn-ghost:hover { border-color:var(--borderMd);color:var(--text);background:#faf8f7; }
+    .btn-danger { background:var(--errBg);border:1px solid var(--errBd);color:var(--err); }
+    .btn-danger:hover { background:rgba(192,32,14,0.14); }
+    .btn-sm { padding:6px 13px;font-size:11px; }
+    .form-grid   { display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px; }
+    .form-group  { display:flex;flex-direction:column;gap:5px; }
+    .form-label  { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:var(--textMt); }
+    .form-hint   { font-size:10px;color:var(--textMt);font-family:var(--mono);line-height:1.5; }
+    .form-input  { padding:10px 13px;background:#faf8f7;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color 0.18s,box-shadow 0.18s; }
+    .form-input:focus  { border-color:var(--red);box-shadow:0 0 0 3px rgba(165,28,48,0.08); }
+    .form-input::placeholder { color:var(--textMt); }
+    .form-select { padding:10px 13px;background:#faf8f7;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;cursor:pointer;transition:border-color 0.18s; }
+    .form-select:focus { border-color:var(--red); }
+    .sec-div { display:flex;align-items:center;gap:10px;margin:18px 0 12px; }
+    .sec-div-line { flex:1;height:1px;background:var(--border); }
+    .sec-div-txt { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:var(--textMt); }
+    .info-note { padding:12px 15px;border-radius:9px;margin-bottom:14px; }
+    .info-note p { font-size:11px;font-family:var(--mono);line-height:1.6; }
+    .note-lab    { background:var(--okBg);  border:1px solid var(--okBd); }
+    .note-lab p  { color:var(--ok); }
+    .note-lang   { background:var(--warnBg);border:1px solid var(--warnBd); }
+    .note-lang p { color:var(--warn); }
+    .note-shared { background:rgba(165,28,48,0.06);border:1px solid var(--borderMd); }
+    .note-shared p { color:var(--red); }
+    .modal-overlay { position:fixed;inset:0;z-index:100;background:rgba(15,5,8,0.55);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s; }
     .modal-overlay.show { opacity:1;pointer-events:all; }
-    .modal { background:rgba(20,5,10,0.97);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:32px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;transform:translateY(20px);transition:transform 0.2s; }
+    .modal { background:#fff;border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto;transform:translateY(18px);transition:transform 0.22s;box-shadow:0 20px 60px rgba(165,28,48,0.12); }
     .modal-overlay.show .modal { transform:translateY(0); }
-    .modal-title { font-family:var(--serif);font-size:24px;font-weight:600;font-style:italic;color:#fff;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between; }
-    .modal-close { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--muted);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s; }
-    .modal-close:hover { color:#fff;border-color:rgba(255,255,255,0.3); }
-
-    .empty-state { text-align:center;padding:40px;color:var(--muted);font-family:var(--mono);font-size:12px; }
-    .empty-icon { font-size:40px;margin-bottom:12px;opacity:0.5; }
-
-    .sec-div { display:flex;align-items:center;gap:12px;margin:20px 0 14px; }
-    .sec-div-line { flex:1;height:1px;background:rgba(255,255,255,0.08); }
-    .sec-div-txt { font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:var(--muted); }
-
-    @keyframes fadeUp { from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1} }
+    .modal-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:24px; }
+    .modal-title-text { font-family:var(--serif);font-size:26px;font-weight:600;font-style:italic;color:var(--text); }
+    .modal-close { background:#faf8f7;border:1px solid var(--border);color:var(--textMt);width:32px;height:32px;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s; }
+    .modal-close:hover { background:var(--errBg);border-color:var(--errBd);color:var(--err); }
+    .empty-state { text-align:center;padding:48px 24px;color:var(--textMt); }
+    .empty-icon { font-size:40px;margin-bottom:12px;opacity:0.4; }
+    .empty-text { font-size:12px;font-family:var(--mono); }
+    .modal::-webkit-scrollbar { width:4px; }
+    .modal::-webkit-scrollbar-thumb { background:var(--border);border-radius:2px; }
+    @keyframes fadeUp { from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1} }
     .fade-up { animation:fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+    .delay-1 { animation-delay:0.05s; }
+    .delay-2 { animation-delay:0.10s; }
   </style>
 </head>
 <body>
 
-<div class="shape s1"></div>
-<div class="shape s2"></div>
-<div class="shape s3"></div>
-
-<!-- ════ SIDEBAR ════ -->
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-crest">TX</div>
-    <div>
-      <div class="logo-name">Timetrix</div>
-      <div class="logo-sub">BCA Department</div>
-    </div>
+    <div><div class="logo-name">Timetrix</div><div class="logo-sub">BCA Department</div></div>
   </div>
   <div class="nav-section">
     <div class="nav-label">Main</div>
     <a class="nav-item" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
-    <a class="nav-item" href="rooms.html"><span class="nav-icon">🏫</span> Rooms & Labs</a>
+    <a class="nav-item" href="rooms.html"><span class="nav-icon">🏫</span> Rooms &amp; Labs</a>
     <a class="nav-item" href="faculty.html"><span class="nav-icon">👩‍🏫</span> Faculty</a>
     <a class="nav-item" href="ga-engine.html"><span class="nav-icon">🧬</span> GA Engine</a>
     <a class="nav-item active" href="subjects.html"><span class="nav-icon">📚</span> Subjects</a>
   </div>
-  <div class="nav-section" style="margin-top:16px;">
+  <div class="nav-section" style="margin-top:14px;">
     <div class="nav-label">Timetable</div>
     <a class="nav-item" href="timetable-class.html"><span class="nav-icon">📅</span> By Class</a>
     <a class="nav-item" href="timetable-faculty.html"><span class="nav-icon">👤</span> By Faculty</a>
@@ -178,65 +181,70 @@
       <div class="user-role" id="user-role">HOD</div>
       <div class="user-email" id="user-email">hod@bca.edu</div>
     </div>
-    <button class="logout-btn" onclick="logout()">⎋ Logout</button>
+    <button class="logout-btn" onclick="logout()">⎋ &nbsp;Logout</button>
   </div>
 </aside>
 
-<!-- ════ MAIN ════ -->
-<main class="main">
+<div class="topbar">
+  <div class="topbar-search"><span style="color:var(--textMt);font-size:14px;">🔍</span><span>Search institutional data…</span></div>
+  <div class="topbar-right">
+    <div><div class="topbar-name" id="topbar-name">Dr. User</div><div class="topbar-role" id="topbar-role">Academic Administrator</div></div>
+    <div class="topbar-avatar" id="topbar-avatar">U</div>
+  </div>
+</div>
 
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;">
+<main class="main">
+<div class="main-inner">
+
+  <div class="page-header fade-up">
     <div>
       <div class="page-eyebrow">// Curriculum Management</div>
-      <div class="page-title">Subjects & <strong>Curriculum</strong></div>
+      <div class="page-title">Subjects &amp; <strong>Curriculum</strong></div>
+      <div class="page-subtitle">Define courses, assign faculty, set batch allocation and scheduling rules.</div>
     </div>
     <button class="btn btn-primary" onclick="openModal()">+ Add Subject</button>
   </div>
 
-  <!-- Mini Stats -->
-  <div class="mini-stats fade-up">
-    <div class="mini-stat"><div class="ms-num" id="stat-total">0</div><div class="ms-lbl">Total Subjects</div></div>
-    <div class="mini-stat"><div class="ms-num" id="stat-yr1">0</div><div class="ms-lbl">I BCA</div></div>
-    <div class="mini-stat"><div class="ms-num" id="stat-yr2">0</div><div class="ms-lbl">II BCA</div></div>
-    <div class="mini-stat"><div class="ms-num" id="stat-yr3">0</div><div class="ms-lbl">III BCA</div></div>
+  <div class="stats-grid fade-up delay-1">
+    <div class="stat-card"><div class="stat-icon">📚</div><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Total Subjects</div></div>
+    <div class="stat-card"><div class="stat-icon">1️⃣</div><div class="stat-num" id="stat-yr1">0</div><div class="stat-lbl">I BCA</div></div>
+    <div class="stat-card"><div class="stat-icon">2️⃣</div><div class="stat-num" id="stat-yr2">0</div><div class="stat-lbl">II BCA</div></div>
+    <div class="stat-card"><div class="stat-icon">3️⃣</div><div class="stat-num" id="stat-yr3">0</div><div class="stat-lbl">III BCA</div></div>
   </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('all')">📚 All</button>
-    <button class="tab" onclick="switchTab('1')">I BCA</button>
-    <button class="tab" onclick="switchTab('2')">II BCA</button>
-    <button class="tab" onclick="switchTab('3')">III BCA</button>
+  <div class="tabs fade-up delay-1">
+    <button class="tab active" id="tab-btn-all" onclick="switchTab('all')">📚 All</button>
+    <button class="tab" id="tab-btn-1" onclick="switchTab('1')">I BCA</button>
+    <button class="tab" id="tab-btn-2" onclick="switchTab('2')">II BCA</button>
+    <button class="tab" id="tab-btn-3" onclick="switchTab('3')">III BCA</button>
   </div>
 
-  <!-- Subject List -->
-  <div class="card">
-    <div class="card-title">
-      Subjects
-      <span class="ctag" id="subj-count">0 Subjects</span>
+  <div class="card fade-up delay-2">
+    <div class="card-header">
+      <div class="card-title">Subjects</div>
+      <span class="tag" id="subj-count">0 Subjects</span>
     </div>
     <div class="subject-list" id="subject-list">
-      <div class="empty-state">
-        <div class="empty-icon">📚</div>
-        No subjects added yet. Click "+ Add Subject" to get started.
-      </div>
+      <div class="empty-state"><div class="empty-icon">📚</div><div class="empty-text">No subjects yet. Click "+ Add Subject" to get started.</div></div>
     </div>
   </div>
 
+</div>
 </main>
 
-<!-- ════ ADD/EDIT MODAL ════ -->
+<!-- ════ MODAL ════ -->
 <div class="modal-overlay" id="subj-modal">
   <div class="modal">
-    <div class="modal-title">
-      <span id="modal-title-text">Add Subject</span>
+    <div class="modal-header">
+      <div class="modal-title-text" id="modal-title-text">Add Subject</div>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
 
+    <!-- Name + Code -->
     <div class="form-grid">
       <div class="form-group">
         <label class="form-label">Subject Name *</label>
-        <input class="form-input" id="f-name" placeholder="e.g. Data Structures">
+        <input class="form-input" id="f-name" placeholder="e.g. Java Programming">
       </div>
       <div class="form-group">
         <label class="form-label">Subject Code</label>
@@ -244,10 +252,11 @@
       </div>
     </div>
 
+    <!-- Year + Type -->
     <div class="form-grid">
       <div class="form-group">
         <label class="form-label">Year *</label>
-        <select class="form-select" id="f-year">
+        <select class="form-select" id="f-year" onchange="onYearChange()">
           <option value="1">I BCA (1st Year)</option>
           <option value="2">II BCA (2nd Year)</option>
           <option value="3">III BCA (3rd Year)</option>
@@ -255,19 +264,20 @@
       </div>
       <div class="form-group">
         <label class="form-label">Subject Type *</label>
-        <select class="form-select" id="f-type" onchange="toggleLangNote(this.value)">
+        <select class="form-select" id="f-type" onchange="onTypeChange(this.value)">
           <option value="theory">Theory</option>
-          <option value="lab">Lab (3hr block)</option>
-          <option value="language">Language (K/H/S)</option>
+          <option value="lab">Lab (3-hour block)</option>
+          <option value="language">Language (K / H / S)</option>
           <option value="project">Project Lab</option>
         </select>
       </div>
     </div>
 
+    <!-- Periods + Room -->
     <div class="form-grid">
       <div class="form-group">
         <label class="form-label">Periods Per Week</label>
-        <input class="form-input" type="number" id="f-periods" value="4" min="1" max="10">
+        <input class="form-input" type="number" id="f-periods" value="4" min="1" max="12">
       </div>
       <div class="form-group">
         <label class="form-label">Room Type</label>
@@ -278,226 +288,284 @@
       </div>
     </div>
 
-    <div class="form-group" style="margin-bottom:14px;">
+    <!-- Faculty -->
+    <div class="form-group" style="margin-bottom:6px;">
       <label class="form-label">Assign Faculty</label>
       <select class="form-select" id="f-faculty">
         <option value="">— Select Faculty —</option>
       </select>
     </div>
 
-    <!-- Language note -->
-    <div id="lang-note" style="display:none;padding:12px;background:rgba(255,200,80,0.10);border:1px solid rgba(255,200,80,0.25);border-radius:8px;margin-bottom:14px;">
-      <div style="font-size:11px;color:var(--warn);font-family:var(--mono);">
-        ⚠ Language subjects run at the SAME slot across all sections of this year.
-        Only available for I BCA and II BCA.
+    <!-- ══ LAB / PROJECT FIELDS ══ -->
+    <div id="lab-fields" style="display:none;">
+      <div class="sec-div"><div class="sec-div-line"></div><div class="sec-div-txt">Lab &amp; Batch Settings</div><div class="sec-div-line"></div></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Batch *</label>
+          <select class="form-select" id="f-batch">
+            <option value="B1">B1 only</option>
+            <option value="B2">B2 only</option>
+            <option value="both">Both B1 &amp; B2 (same subject for all)</option>
+          </select>
+          <span class="form-hint" style="margin-top:4px;">From the real timetable: DS–B1–L2 and OS–B2–L3 run at the same time. Add Java Lab and OS Lab as <strong>separate</strong> subjects with B1 and B2.</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preferred Lab Room</label>
+          <input class="form-input" id="f-labroom" placeholder="e.g. L1, L2, L3, L4, EL">
+          <span class="form-hint" style="margin-top:4px;">Room code shown in timetable (L1–L4, EL, etc.)</span>
+        </div>
+      </div>
+      <div class="info-note note-lab">
+        <p>🔬 Each lab runs as a <strong>3-hour consecutive block</strong>. B1 and B2 of the same section run simultaneously — doing <strong>different lab subjects</strong> in different rooms. Add each lab subject separately with B1 or B2 selected.</p>
       </div>
     </div>
 
-    <div style="display:flex;gap:10px;margin-top:20px;">
-      <button class="btn btn-primary" style="flex:1;" onclick="saveSubject()">✓ Save Subject</button>
+    <!-- ══ LANGUAGE FIELDS ══ -->
+    <div id="lang-fields" style="display:none;">
+      <div class="sec-div"><div class="sec-div-line"></div><div class="sec-div-txt">Language Settings</div><div class="sec-div-line"></div></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Language *</label>
+          <select class="form-select" id="f-lang-code">
+            <option value="K">Kannada (K)</option>
+            <option value="H">Hindi (H)</option>
+            <option value="S">Sanskrit (S)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Classroom for this Language</label>
+          <input class="form-input" id="f-lang-room" placeholder="e.g. 209, 221A, 125">
+          <span class="form-hint" style="margin-top:4px;">Dedicated room for students taking this language</span>
+        </div>
+      </div>
+      <div class="info-note note-lang">
+        <p>🌐 K/H/S runs at the <strong>same time slot</strong> for all sections of this year. Students split into their chosen language room. Add Kannada, Hindi, and Sanskrit as 3 separate language subjects.</p>
+      </div>
+    </div>
+
+    <!-- ══ SHARED LECTURE FIELDS (theory only) ══ -->
+    <div id="shared-fields" style="display:none;">
+      <div class="sec-div"><div class="sec-div-line"></div><div class="sec-div-txt">Shared Lecture (Optional)</div><div class="sec-div-line"></div></div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label">Shared Across All Sections of This Year?</label>
+        <select class="form-select" id="f-shared" onchange="onSharedChange()">
+          <option value="no">No — taught separately per section</option>
+          <option value="yes">Yes — all sections attend at the same time (different rooms)</option>
+        </select>
+        <span class="form-hint" style="margin-top:4px;">Example from PDF: WP/DA/DS — all II BCA sections attend at 8:00–9:00 in rooms 311/308/316 simultaneously</span>
+      </div>
+      <div id="shared-rooms-wrap" style="display:none;">
+        <div class="form-group" style="margin-bottom:10px;">
+          <label class="form-label">Rooms (one per section, comma-separated)</label>
+          <input class="form-input" id="f-shared-rooms" placeholder="e.g. 311, 308, 316, 310B">
+          <span class="form-hint" style="margin-top:4px;">Order must match section order: A, B, C, D…</span>
+        </div>
+        <div class="info-note note-shared">
+          <p>🏫 This subject will be scheduled at the <strong>same slot</strong> for ALL sections of <span id="shared-year-label">this year</span>, each in their respective room above.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:24px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="saveSubject()">✓ &nbsp;Save Subject</button>
       <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
     </div>
   </div>
 </div>
 
 <script>
-// ── AUTH ──────────────────────────────────────
 const u = checkAuth(['hod','admin']);
 applyRoleUI(u);
+function logout(){ sessionStorage.removeItem('bca_user'); window.location.href='index.html'; }
 
-// ── DATA ──────────────────────────────────────
-let subjects    = [];
-let facultyList = [];
-let editingId   = null;
-let currentTab  = 'all';
+const initials=(u.email||'U').charAt(0).toUpperCase();
+document.getElementById('topbar-avatar').textContent=initials;
+document.getElementById('topbar-name').textContent=u.email?u.email.split('@')[0].replace(/\b\w/g,c=>c.toUpperCase()):'User';
+document.getElementById('topbar-role').textContent=(u.role||'User').toUpperCase();
 
-const TYPE_ICONS = {
-  theory:   '📖',
-  lab:      '🔬',
-  language: '🌐',
-  project:  '💻'
-};
+let subjects=[], facultyList=[], editingId=null, currentTab='all';
+const TYPE_ICONS={ theory:'📖', lab:'🔬', language:'🌐', project:'💻' };
+const LANG_NAMES={ K:'Kannada', H:'Hindi', S:'Sanskrit' };
+const YEAR_LABELS={ 1:'I BCA', 2:'II BCA', 3:'III BCA' };
 
-// ── LOAD DATA ─────────────────────────────────
-async function loadData() {
-  try {
-    const [subjRes, facRes] = await Promise.all([
-      Subjects.getAll(),
-      Faculty.getAll()
-    ]);
-    if (Array.isArray(subjRes)) subjects    = subjRes;
-    if (Array.isArray(facRes))  facultyList = facRes;
-  } catch(e) {
-    console.log('Backend unavailable');
-  }
-  renderSubjects();
-  updateStats();
-  populateFacultyDropdown();
+async function loadData(){
+  try{
+    const [sRes,fRes]=await Promise.all([Subjects.getAll(),Faculty.getAll()]);
+    if(Array.isArray(sRes)) subjects=sRes;
+    if(Array.isArray(fRes)) facultyList=fRes;
+  } catch(e){ console.log('Backend unavailable'); }
+  renderSubjects(); updateStats(); populateFacultyDropdown();
 }
 
-// ── STATS ─────────────────────────────────────
-function updateStats() {
-  document.getElementById('stat-total').textContent = subjects.length;
-  document.getElementById('stat-yr1').textContent   = subjects.filter(s=>s.year=='1').length;
-  document.getElementById('stat-yr2').textContent   = subjects.filter(s=>s.year=='2').length;
-  document.getElementById('stat-yr3').textContent   = subjects.filter(s=>s.year=='3').length;
+function updateStats(){
+  document.getElementById('stat-total').textContent=subjects.length;
+  document.getElementById('stat-yr1').textContent=subjects.filter(s=>s.year=='1').length;
+  document.getElementById('stat-yr2').textContent=subjects.filter(s=>s.year=='2').length;
+  document.getElementById('stat-yr3').textContent=subjects.filter(s=>s.year=='3').length;
 }
 
-// ── TABS ──────────────────────────────────────
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active',
-      (i===0&&tab==='all') ||
-      (i===1&&tab==='1')   ||
-      (i===2&&tab==='2')   ||
-      (i===3&&tab==='3')
-    );
-  });
+function switchTab(tab){
+  currentTab=tab;
+  ['all','1','2','3'].forEach(t=>document.getElementById('tab-btn-'+t).classList.toggle('active',t===tab));
   renderSubjects();
 }
 
-// ── RENDER ────────────────────────────────────
-function renderSubjects() {
-  const container = document.getElementById('subject-list');
-  const filtered  = currentTab === 'all'
-    ? subjects
-    : subjects.filter(s => s.year == currentTab);
-
-  document.getElementById('subj-count').textContent = filtered.length + ' Subjects';
-
-  if (filtered.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">📚</div>
-        No subjects found. Click "+ Add Subject" to get started.
-      </div>`;
+function renderSubjects(){
+  const container=document.getElementById('subject-list');
+  const filtered=currentTab==='all'?subjects:subjects.filter(s=>s.year==currentTab);
+  document.getElementById('subj-count').textContent=filtered.length+' Subjects';
+  if(!filtered.length){
+    container.innerHTML=`<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-text">No subjects found.</div></div>`;
     return;
   }
+  container.innerHTML=filtered.map(s=>{
+    const chips=[];
+    chips.push(`Year ${s.year} BCA`);
+    chips.push(`${s.periods_per_week||4} periods/wk`);
+    chips.push(s.room_type==='lab'?'🔬 Lab':'🏫 Classroom');
+    if(s.lab_batch) chips.push(`Batch: ${s.lab_batch}`);
+    if(s.lab_room_pref) chips.push(`Room: ${s.lab_room_pref}`);
+    if(s.language_code) chips.push(LANG_NAMES[s.language_code]||s.language_code);
+    if(s.language_room) chips.push(`Lang room: ${s.language_room}`);
+    if(s.is_shared==='yes'||s.is_shared===true||s.is_shared===1) chips.push('🔗 Shared lecture');
+    if(s.faculty_name) chips.push(`👩‍🏫 ${s.faculty_name}`);
 
-  container.innerHTML = filtered.map(s => `
-    <div class="subject-item">
+    const badges=[];
+    badges.push(`<span class="badge badge-${s.type}">${s.type}</span>`);
+    if(s.lab_batch&&(s.type==='lab'||s.type==='project')) badges.push(`<span class="badge badge-batch">${s.lab_batch}</span>`);
+    if(s.language_code) badges.push(`<span class="badge badge-lang-k">${s.language_code}</span>`);
+    if(s.is_shared==='yes'||s.is_shared===true||s.is_shared===1) badges.push(`<span class="badge badge-shared">Shared</span>`);
+
+    return `<div class="subject-item">
       <div class="si-left">
-        <div class="si-icon ${s.type}">${TYPE_ICONS[s.type] || '📖'}</div>
-        <div>
-          <div class="si-name">${s.name} ${s.code ? `<span style="font-size:10px;color:var(--muted);font-family:var(--mono);">(${s.code})</span>` : ''}</div>
-          <div class="si-meta">
-            <span>Year ${s.year} BCA</span>
-            <span>${s.periods_per_week} periods/week</span>
-            <span>${s.room_type === 'lab' ? '🔬 Lab' : '🏫 Classroom'}</span>
-            ${s.faculty_name ? `<span>👩‍🏫 ${s.faculty_name}</span>` : ''}
-          </div>
+        <div class="si-icon ${s.type}">${TYPE_ICONS[s.type]||'📖'}</div>
+        <div style="min-width:0;">
+          <div class="si-name">${s.name}${s.code?`<span class="si-code">(${s.code})</span>`:''}</div>
+          <div class="si-meta">${chips.map(c=>`<span>${c}</span>`).join('')}</div>
         </div>
       </div>
       <div class="si-actions">
-        <span class="si-badge badge-${s.type}">${s.type}</span>
+        ${badges.join('')}
         <button class="btn btn-ghost btn-sm" onclick="openModal(${s.id})">✏ Edit</button>
         <button class="btn btn-danger btn-sm" onclick="deleteSubject(${s.id})">✕</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
-// ── POPULATE FACULTY DROPDOWN ─────────────────
-function populateFacultyDropdown() {
-  const select = document.getElementById('f-faculty');
-  select.innerHTML = '<option value="">— Select Faculty —</option>';
-  facultyList.forEach(f => {
-    select.innerHTML += `<option value="${f.id}">${f.name} ${f.code ? '('+f.code+')' : ''}</option>`;
-  });
+function populateFacultyDropdown(){
+  const sel=document.getElementById('f-faculty');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Select Faculty —</option>';
+  facultyList.forEach(f=>{ sel.innerHTML+=`<option value="${f.id}">${f.name}${f.code?' ('+f.code+')':''}</option>`; });
+  if(cur) sel.value=cur;
 }
 
-// ── MODAL ─────────────────────────────────────
-function openModal(id = null) {
-  editingId = id;
-  if (id) {
-    const s = subjects.find(s => s.id === id);
-    document.getElementById('modal-title-text').textContent = 'Edit Subject';
-    document.getElementById('f-name').value     = s.name;
-    document.getElementById('f-code').value     = s.code || '';
-    document.getElementById('f-year').value     = s.year;
-    document.getElementById('f-type').value     = s.type;
-    document.getElementById('f-periods').value  = s.periods_per_week;
-    document.getElementById('f-roomtype').value = s.room_type;
-    document.getElementById('f-faculty').value  = s.faculty_id || '';
-    toggleLangNote(s.type);
+function onTypeChange(type){
+  document.getElementById('lab-fields').style.display    = (type==='lab'||type==='project')?'':'none';
+  document.getElementById('lang-fields').style.display   = type==='language'?'':'none';
+  document.getElementById('shared-fields').style.display = type==='theory'?'':'none';
+  if(type==='lab'||type==='project'){
+    document.getElementById('f-roomtype').value='lab';
+    document.getElementById('f-periods').value='3';
+  } else if(type==='language'){
+    document.getElementById('f-roomtype').value='classroom';
+    document.getElementById('f-periods').value='5';
   } else {
-    document.getElementById('modal-title-text').textContent = 'Add Subject';
-    document.getElementById('f-name').value     = '';
-    document.getElementById('f-code').value     = '';
-    document.getElementById('f-year').value     = '1';
-    document.getElementById('f-type').value     = 'theory';
-    document.getElementById('f-periods').value  = '4';
-    document.getElementById('f-roomtype').value = 'classroom';
-    document.getElementById('f-faculty').value  = '';
-    toggleLangNote('theory');
+    document.getElementById('f-roomtype').value='classroom';
+    const p=parseInt(document.getElementById('f-periods').value);
+    if(p<4) document.getElementById('f-periods').value='4';
   }
+}
+
+function onYearChange(){
+  const yr=document.getElementById('f-year').value;
+  document.getElementById('shared-year-label').textContent=YEAR_LABELS[yr]||'this year';
+}
+
+function onSharedChange(){
+  const isShared=document.getElementById('f-shared').value==='yes';
+  document.getElementById('shared-rooms-wrap').style.display=isShared?'':'none';
+}
+
+function openModal(id=null){
+  editingId=id;
+  if(id){
+    const s=subjects.find(s=>s.id===id);
+    document.getElementById('modal-title-text').textContent='Edit Subject';
+    document.getElementById('f-name').value        =s.name;
+    document.getElementById('f-code').value        =s.code||'';
+    document.getElementById('f-year').value        =s.year;
+    document.getElementById('f-type').value        =s.type;
+    document.getElementById('f-periods').value     =s.periods_per_week||4;
+    document.getElementById('f-roomtype').value    =s.room_type||'classroom';
+    document.getElementById('f-faculty').value     =s.faculty_id||'';
+    document.getElementById('f-batch').value       =s.lab_batch||'B1';
+    document.getElementById('f-labroom').value     =s.lab_room_pref||'';
+    document.getElementById('f-lang-code').value  =s.language_code||'K';
+    document.getElementById('f-lang-room').value  =s.language_room||'';
+    const isShared=(s.is_shared==='yes'||s.is_shared===true||s.is_shared===1)?'yes':'no';
+    document.getElementById('f-shared').value      =isShared;
+    document.getElementById('f-shared-rooms').value=s.shared_rooms||'';
+    document.getElementById('shared-rooms-wrap').style.display=isShared==='yes'?'':'none';
+    onTypeChange(s.type);
+  } else {
+    document.getElementById('modal-title-text').textContent='Add Subject';
+    ['f-name','f-code','f-labroom','f-lang-room','f-shared-rooms'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f-year').value='1';
+    document.getElementById('f-type').value='theory';
+    document.getElementById('f-periods').value='4';
+    document.getElementById('f-roomtype').value='classroom';
+    document.getElementById('f-faculty').value='';
+    document.getElementById('f-batch').value='B1';
+    document.getElementById('f-lang-code').value='K';
+    document.getElementById('f-shared').value='no';
+    document.getElementById('shared-rooms-wrap').style.display='none';
+    onTypeChange('theory');
+  }
+  document.getElementById('shared-year-label').textContent=YEAR_LABELS[document.getElementById('f-year').value]||'this year';
   document.getElementById('subj-modal').classList.add('show');
 }
 
-function closeModal() {
-  document.getElementById('subj-modal').classList.remove('show');
-}
+function closeModal(){ document.getElementById('subj-modal').classList.remove('show'); }
 
-function toggleLangNote(type) {
-  document.getElementById('lang-note').style.display = type === 'language' ? '' : 'none';
-  if (type === 'lab' || type === 'project') {
-    document.getElementById('f-roomtype').value = 'lab';
-    document.getElementById('f-periods').value  = '3';
-  } else if (type !== 'language') {
-    document.getElementById('f-roomtype').value = 'classroom';
-  }
-}
-
-// ── SAVE SUBJECT ──────────────────────────────
-async function saveSubject() {
-  const name      = document.getElementById('f-name').value.trim();
-  const code      = document.getElementById('f-code').value.trim();
-  const year      = document.getElementById('f-year').value;
-  const type      = document.getElementById('f-type').value;
-  const periods   = document.getElementById('f-periods').value;
-  const roomType  = document.getElementById('f-roomtype').value;
-  const facultyId = document.getElementById('f-faculty').value;
-
-  if (!name) { alert('Subject name is required!'); return; }
-
-  if (type === 'language' && year === '3') {
-    alert('Language subjects are only for I BCA and II BCA!');
-    return;
-  }
-
-  const data = {
-    name, code, year, type,
-    periods_per_week: parseInt(periods),
-    room_type:  roomType,
-    faculty_id: facultyId || null
+async function saveSubject(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){ alert('Subject name is required!'); return; }
+  const type=document.getElementById('f-type').value;
+  const year=document.getElementById('f-year').value;
+  if(type==='language'&&year==='3'){ alert('Language subjects (K/H/S) are only for I BCA and II BCA!'); return; }
+  const isLab=type==='lab'||type==='project';
+  const isSharedVal=document.getElementById('f-shared').value;
+  const data={
+    name,
+    code:             document.getElementById('f-code').value.trim(),
+    year, type,
+    periods_per_week: parseInt(document.getElementById('f-periods').value)||4,
+    room_type:        document.getElementById('f-roomtype').value,
+    faculty_id:       document.getElementById('f-faculty').value||null,
+    // Lab/batch
+    lab_batch:        isLab ? document.getElementById('f-batch').value : null,
+    lab_room_pref:    isLab ? document.getElementById('f-labroom').value.trim()||null : null,
+    // Language
+    language_code:    type==='language' ? document.getElementById('f-lang-code').value : null,
+    language_room:    type==='language' ? document.getElementById('f-lang-room').value.trim()||null : null,
+    // Shared lecture
+    is_shared:        type==='theory' ? isSharedVal : 'no',
+    shared_rooms:     (type==='theory'&&isSharedVal==='yes') ? document.getElementById('f-shared-rooms').value.trim()||null : null,
   };
-
-  try {
-    if (editingId) {
-      await Subjects.update(editingId, data);
-    } else {
-      await Subjects.add(data);
-    }
-    await loadData();
-    closeModal();
-  } catch(e) {
-    alert('Error saving subject! Make sure backend is running.');
-  }
+  try{
+    editingId ? await Subjects.update(editingId,data) : await Subjects.add(data);
+    await loadData(); closeModal();
+  } catch(e){ alert('Error saving subject! Make sure backend is running.'); console.error(e); }
 }
 
-// ── DELETE SUBJECT ────────────────────────────
-async function deleteSubject(id) {
-  if (!confirm('Delete this subject?')) return;
-  try {
-    await Subjects.delete(id);
-    await loadData();
-  } catch(e) {
-    alert('Error deleting subject!');
-  }
+async function deleteSubject(id){
+  if(!confirm('Delete this subject?')) return;
+  try{ await Subjects.delete(id); await loadData(); }
+  catch(e){ alert('Error deleting subject!'); }
 }
 
-// ── INIT ──────────────────────────────────────
 loadData();
 </script>
 </body>

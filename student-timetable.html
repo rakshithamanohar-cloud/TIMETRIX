@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timetrix — My Timetable</title>
+  <script src="js/api.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red:#a51c30;--red2:#8b1526;--redXL:#d9566a;
+      --bg:#f7f4f2;--bgCard:#ffffff;--text:#1a0a0e;--textMd:#4a2030;--textMt:#8a6070;
+      --border:rgba(165,28,48,0.15);--ok:#1a7a45;
+      --font:'Outfit',sans-serif;--serif:'Cormorant Garamond',serif;--mono:'JetBrains Mono',monospace;
+      --radius:12px;--shadow:0 1px 3px rgba(165,28,48,0.06),0 4px 16px rgba(165,28,48,0.04);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;}
+
+    .topbar{background:#0f0508;border-bottom:1px solid rgba(255,255,255,0.08);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+    .topbar-logo{display:flex;align-items:center;gap:10px;}
+    .logo-crest{width:32px;height:32px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:14px;font-weight:700;color:#fff;}
+    .logo-name{font-family:var(--serif);font-size:18px;font-weight:700;color:#fff;}
+    .topbar-right{display:flex;align-items:center;gap:12px;}
+    .topbar-name{font-size:13px;font-weight:500;color:#fff;}
+    .topbar-role{font-size:9px;color:rgba(255,255,255,0.4);font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;}
+    .topbar-avatar{width:32px;height:32px;border-radius:50%;background:var(--red);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+    .logout-btn{padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:rgba(255,255,255,0.5);font-size:10px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;}
+    .logout-btn:hover{border-color:rgba(255,255,255,0.35);color:#fff;}
+
+    .main{padding:32px 24px 48px;max-width:1300px;margin:0 auto;}
+    .page-eyebrow{font-size:10px;font-family:var(--mono);letter-spacing:0.26em;text-transform:uppercase;color:var(--redXL);margin-bottom:6px;}
+    .page-title{font-family:var(--serif);font-size:38px;font-weight:300;color:var(--text);line-height:1.05;margin-bottom:6px;}
+    .page-title strong{font-weight:700;font-style:italic;color:var(--red);}
+    .page-meta{font-size:12px;color:var(--textMt);font-family:var(--mono);margin-bottom:20px;}
+
+    .class-badge{display:inline-flex;align-items:center;gap:8px;background:var(--red);color:#fff;padding:8px 18px;border-radius:10px;font-family:var(--serif);font-size:18px;font-weight:600;font-style:italic;margin-bottom:20px;}
+
+    .fitness-bar{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;margin-bottom:20px;box-shadow:var(--shadow);}
+    .fb-score{font-family:var(--serif);font-size:28px;font-weight:700;color:var(--red);}
+    .fb-label{font-size:10px;font-family:var(--mono);letter-spacing:0.15em;text-transform:uppercase;color:var(--textMt);}
+    .fb-conflicts{font-size:12px;color:var(--textMd);font-family:var(--mono);}
+
+    .tt-wrap{overflow-x:auto;border-radius:var(--radius);box-shadow:var(--shadow);}
+    table{width:100%;border-collapse:collapse;background:var(--bgCard);min-width:900px;}
+    thead th{padding:14px 10px;font-size:10px;font-family:var(--mono);letter-spacing:0.18em;text-transform:uppercase;color:var(--textMt);border-bottom:2px solid var(--border);text-align:center;background:#faf8f7;}
+    thead th:first-child{text-align:left;padding-left:16px;width:110px;}
+    thead .sat-head{color:var(--red);}
+    tbody tr:hover td{background:rgba(165,28,48,0.02);}
+    td{padding:5px;border-bottom:1px solid var(--border);vertical-align:top;text-align:center;min-width:130px;}
+    td:first-child{text-align:left;padding-left:16px;min-width:110px;}
+    .time-label{font-size:10px;font-family:var(--mono);color:var(--textMt);}
+    .lunch-row td{padding:8px;background:rgba(165,28,48,0.03);font-size:9px;font-family:var(--mono);letter-spacing:0.2em;text-transform:uppercase;color:var(--textMt);text-align:center;}
+
+    .cell{border-radius:8px;padding:8px 9px;margin:2px;text-align:left;transition:box-shadow 0.15s;}
+    .cell:hover{box-shadow:0 2px 12px rgba(165,28,48,0.12);}
+    .cell-theory{background:#f0f4ff;border:1px solid rgba(80,100,200,0.15);}
+    .cell-lab{background:#f0faf4;border:1px solid rgba(26,122,69,0.2);}
+    .cell-language{background:#fff8f0;border:1px solid rgba(200,120,0,0.2);}
+    .cell-project{background:#fdf0ff;border:1px solid rgba(140,0,200,0.15);}
+    .cell-subject{font-size:12px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:3px;}
+    .cell-faculty{font-size:10px;color:var(--textMd);font-family:var(--mono);}
+    .cell-room{font-size:9px;color:var(--textMt);font-family:var(--mono);margin-top:2px;}
+    .cell-batch{display:inline-block;font-size:8px;font-family:var(--mono);padding:1px 6px;border-radius:4px;margin-left:4px;background:rgba(26,122,69,0.12);color:var(--ok);font-weight:700;}
+    .lang-lines{display:flex;flex-direction:column;gap:2px;margin-top:3px;}
+    .lang-line{font-size:9px;color:var(--textMd);font-family:var(--mono);}
+
+    .loading{text-align:center;padding:80px 20px;font-family:var(--mono);font-size:12px;color:var(--textMt);}
+    .loading-spin{width:32px;height:32px;border:3px solid rgba(165,28,48,0.2);border-top-color:var(--red);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-crest">TX</div>
+    <div class="logo-name">Timetrix</div>
+  </div>
+  <div class="topbar-right">
+    <div>
+      <div class="topbar-name" id="topbar-name">Student</div>
+      <div class="topbar-role">Student Portal</div>
+    </div>
+    <div class="topbar-avatar" id="topbar-avatar">S</div>
+    <button class="logout-btn" onclick="doLogout()">⎋ Logout</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-eyebrow">// My Timetable</div>
+  <div class="page-title">Your <strong>Schedule.</strong></div>
+  <div class="page-meta" id="page-meta">Loading your class timetable…</div>
+
+  <div class="class-badge" id="class-badge" style="display:none">
+    📅 <span id="class-label">—</span>
+  </div>
+
+  <div class="fitness-bar" id="fitness-bar" style="display:none">
+    <div>
+      <div class="fb-label">Timetable Fitness</div>
+      <div class="fb-score" id="fb-score">—</div>
+    </div>
+    <div class="fb-conflicts" id="fb-conflicts">—</div>
+  </div>
+
+  <div id="tt-container">
+    <div class="loading">
+      <div class="loading-spin"></div>
+      Loading timetable…
+    </div>
+  </div>
+</div>
+
+<script>
+const session = sessionStorage.getItem('bca_user');
+if (!session) { window.location.href = 'index.html'; }
+const user = JSON.parse(session);
+if (user.role !== 'student') { window.location.href = 'index.html'; }
+
+document.getElementById('topbar-name').textContent = user.name || 'Student';
+document.getElementById('topbar-avatar').textContent = (user.name || 'S')[0].toUpperCase();
+
+function doLogout() {
+  sessionStorage.removeItem('bca_user');
+  localStorage.removeItem('timetrix_token');
+  window.location.href = 'index.html';
+}
+
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+const SLOT_LABELS = {0:'8:00–9:00',1:'9:00–10:00',2:'10:00–11:00',3:'11:00–12:00',5:'1:00–2:00',6:'2:00–3:00',7:'3:00–4:00',8:'4:00–5:00'};
+const WORK_SLOTS = [0,1,2,3,5,6,7,8];
+const SAT_SLOTS  = [0,1,2,3];
+const CLASS_LABELS = {
+  'I_A':'I BCA — Section A','I_B':'I BCA — Section B',
+  'II_A':'II BCA — Section A','II_B':'II BCA — Section B',
+  'II_C':'II BCA — Section C','II_D':'II BCA — Section D',
+  'III_A':'III BCA — Section A','III_B':'III BCA — Section B','III_C':'III BCA — Section C',
+};
+
+// Language rooms per year
+const LANG_ROOMS = {
+  1: [{code:'K',name:'Kannada',room:'209'},{code:'H',name:'Hindi',room:'229'},{code:'S',name:'Sanskrit',room:'125'}],
+  2: [{code:'K',name:'Kannada',room:'314'},{code:'H',name:'Hindi',room:'221A'},{code:'S',name:'Sanskrit',room:'125'}],
+  3: [],
+};
+
+function getYear(cls) {
+  if (!cls) return 1;
+  if (cls.startsWith('III')) return 3;
+  if (cls.startsWith('II_')) return 2;
+  return 1;
+}
+
+async function loadTimetable() {
+  const className = user.class_name;
+  if (!className) {
+    document.getElementById('tt-container').innerHTML = '<div class="loading">⚠ No class assigned. Contact your HOD.</div>';
+    return;
+  }
+
+  document.getElementById('class-badge').style.display = 'inline-flex';
+  document.getElementById('class-label').textContent = CLASS_LABELS[className] || className;
+  document.getElementById('page-meta').textContent = `Timetable for ${CLASS_LABELS[className] || className}`;
+
+  try {
+    const res  = await fetch(`http://localhost:5000/api/timetable/class/${className}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('timetrix_token')}` }
+    });
+    const data = await res.json();
+
+    const meta = JSON.parse(localStorage.getItem('bca_ga_result') || '{}');
+    if (meta.fitness) {
+      document.getElementById('fitness-bar').style.display = 'flex';
+      document.getElementById('fb-score').textContent = meta.fitness + '%';
+      document.getElementById('fb-conflicts').textContent =
+        `${meta.conflicts} conflict${meta.conflicts !== 1 ? 's' : ''} · ${new Date(meta.generatedAt).toLocaleDateString()}`;
+    }
+
+    renderTimetable(data.schedule || {}, getYear(className));
+  } catch(e) {
+    document.getElementById('tt-container').innerHTML = '<div class="loading">⚠ Could not load timetable. Make sure backend is running.</div>';
+  }
+}
+
+function renderTimetable(schedule, year) {
+  const langRooms = LANG_ROOMS[year] || [];
+  let html = `<div class="tt-wrap"><table><thead><tr>
+    <th>Time</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th>
+    <th class="sat-head">Sat<br><span style="font-size:8px;opacity:0.6">Half Day</span></th>
+  </tr></thead><tbody>`;
+
+  WORK_SLOTS.forEach(slot => {
+    if (slot === 5) {
+      html += `<tr class="lunch-row"><td>12:00–1:00</td>${DAYS.map(()=>'<td>— Lunch —</td>').join('')}</tr>`;
+    }
+
+    html += `<tr><td><div class="time-label">${SLOT_LABELS[slot]}</div></td>`;
+
+    DAYS.forEach(day => {
+      if (day === 'Sat' && !SAT_SLOTS.includes(slot)) { html += `<td></td>`; return; }
+
+      const cell = schedule[day]?.[slot];
+      if (!cell || !cell.subject) { html += `<td></td>`; return; }
+
+      const type = cell.type || 'theory';
+      let cls = 'cell-theory';
+      if (type === 'lab') cls = 'cell-lab';
+      else if (type === 'project') cls = 'cell-project';
+      else if (type === 'language') cls = 'cell-language';
+
+      let inner = '';
+      if (type === 'language') {
+        const lines = langRooms.map(l =>
+          `<div class="lang-line">${l.name} · Room ${l.room}</div>`
+        ).join('');
+        inner = `<div class="cell-subject">Language</div><div class="lang-lines">${lines}</div>`;
+      } else if (type === 'lab' || type === 'project') {
+        inner = `
+          <div class="cell-subject">${cell.subject}<span class="cell-batch">${cell.batch||'B1'}</span></div>
+          <div class="cell-faculty">${cell.facultyCode||cell.facultyName||'—'}</div>
+          <div class="cell-room">${cell.room||'—'}</div>`;
+      } else {
+        inner = `
+          <div class="cell-subject">${cell.subject}</div>
+          <div class="cell-faculty">${cell.facultyCode||cell.facultyName||'—'}</div>
+          <div class="cell-room">${cell.room||'—'}</div>`;
+      }
+
+      html += `<td><div class="cell ${cls}">${inner}</div></td>`;
+    });
+
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  document.getElementById('tt-container').innerHTML = html;
+}
+
+loadTimetable();
+</script>
+</body>
+</html>
