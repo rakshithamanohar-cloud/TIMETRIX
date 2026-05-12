@@ -263,6 +263,13 @@
         </select>
       </div>
       <div class="form-group">
+        <label class="form-label">Semester</label>
+        <select class="form-select" id="f-semester">
+          <option value="even">Even (II, IV, VI)</option>
+          <option value="odd">Odd (I, III, V)</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label class="form-label">Subject Type *</label>
         <select class="form-select" id="f-type" onchange="onTypeChange(this.value)">
           <option value="theory">Theory</option>
@@ -496,6 +503,7 @@ function openModal(id=null){
     document.getElementById('f-name').value        =s.name;
     document.getElementById('f-code').value        =s.code||'';
     document.getElementById('f-year').value        =s.year;
+    document.getElementById('f-semester').value    =s.semester||'even';  
     document.getElementById('f-type').value        =s.type;
     document.getElementById('f-periods').value     =s.periods_per_week||4;
     document.getElementById('f-roomtype').value    =s.room_type||'classroom';
@@ -513,6 +521,7 @@ function openModal(id=null){
     document.getElementById('modal-title-text').textContent='Add Subject';
     ['f-name','f-code','f-labroom','f-lang-room','f-shared-rooms'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('f-year').value='1';
+    document.getElementById('f-semester').value='even';  
     document.getElementById('f-type').value='theory';
     document.getElementById('f-periods').value='4';
     document.getElementById('f-roomtype').value='classroom';
@@ -541,6 +550,7 @@ async function saveSubject(){
     name,
     code:             document.getElementById('f-code').value.trim(),
     year, type,
+    semester:         document.getElementById('f-semester').value, 
     periods_per_week: parseInt(document.getElementById('f-periods').value)||4,
     room_type:        document.getElementById('f-roomtype').value,
     faculty_id:       document.getElementById('f-faculty').value||null,

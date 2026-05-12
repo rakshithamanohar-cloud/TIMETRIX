@@ -546,6 +546,13 @@
             <input class="form-input" type="number" id="ga-elitism" value="10" min="5" max="30">
           </div>
           <div class="form-group" style="grid-column:span 2;">
+            <label class="form-label">Semester</label>
+            <select class="form-select" id="ga-semester">
+              <option value="even">Even Semester (II, IV, VI)</option>
+              <option value="odd">Odd Semester (I, III, V)</option>
+            </select>
+          </div>
+          <div class="form-group" style="grid-column:span 2;">
             <label class="form-label">Target Fitness Score</label>
             <select class="form-select" id="ga-target">
               <option value="100">100% — Perfect (no conflicts)</option>
@@ -772,6 +779,10 @@ async function runGA(){
   const elitePct=(parseInt(document.getElementById('ga-elitism').value)||10)/100;
   const target=parseInt(document.getElementById('ga-target').value)||95;
 
+  const semester = document.getElementById('ga-semester').value;
+  const filteredSubjects = allSubjects.filter(s =>
+    !s.semester || s.semester === semester
+  );
   const btn=document.getElementById('run-btn');
   btn.disabled=true; btn.innerHTML='<span class="spin">🧬</span> &nbsp;Running GA…';
   document.getElementById('log-status').textContent='Running';
@@ -785,7 +796,7 @@ async function runGA(){
   log(`Initializing ${popSize} chromosomes…`,'info');
 
   GA.run({
-    faculty:activeFaculty, rooms, labs, allSubjects,
+    faculty:activeFaculty, rooms, labs, allSubjects:filteredSubjects,
     populationSize:popSize, maxGenerations:maxGen,
     mutationRate:mutRate, elitismPct:elitePct, targetFitness:target,
 
